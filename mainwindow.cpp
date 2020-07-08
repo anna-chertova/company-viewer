@@ -1,9 +1,12 @@
 #include <QFileDialog>
 #include <QHeaderView>
+#include <QMessageBox>
 #include <QStandardItemModel>
 #include <QStandardItem>
 #include <QStandardPaths>
 #include <QTreeView>
+#include <QXmlStreamReader>
+#include <QXmlStreamWriter>
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
@@ -45,6 +48,24 @@ MainWindow::~MainWindow()
 
 bool MainWindow::loadFile(const QString &fileName)
 {
+    QFile file(fileName);
+    if (!file.open(QFile::ReadOnly | QFile::Text))
+    {
+        QMessageBox::warning(this, "Error opening file", "Could not open file", QMessageBox::Ok);
+        return false;
+    }
+
+    /// TODO: put parsed xml file into separate entity
+    QXmlStreamReader xmlReader;
+    xmlReader.setDevice(&file);
+    xmlReader.readNext();
+    while (!xmlReader.atEnd())
+    {
+        if (xmlReader.isStartElement())
+        {
+
+        }
+    }
     return true;
 }
 
