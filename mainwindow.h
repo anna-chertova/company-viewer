@@ -1,3 +1,8 @@
+/*
+ * (c) Anna Chertova 2020
+ * This class manages main GUI
+ */
+
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
@@ -8,6 +13,7 @@ namespace Ui { class MainWindow; }
 class QTreeView;
 class QStandardItemModel;
 class QStandardItem;
+class QFile;
 QT_END_NAMESPACE
 
 class MainWindow : public QMainWindow
@@ -19,6 +25,9 @@ public:
     ~MainWindow();
 
     bool loadFile(const QString &fileName);
+
+signals:
+    void loadCompanyData(QFile *file);
 
 private slots:
     void open();

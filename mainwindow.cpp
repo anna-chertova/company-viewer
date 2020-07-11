@@ -5,8 +5,6 @@
 #include <QStandardItem>
 #include <QStandardPaths>
 #include <QTreeView>
-#include <QXmlStreamReader>
-#include <QXmlStreamWriter>
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
@@ -64,18 +62,7 @@ bool MainWindow::loadFile(const QString &fileName)
         return false;
     }
 
-    /// TODO: put parsed xml file into separate entity
-    QXmlStreamReader xmlReader;
-    xmlReader.setDevice(&file);
-    xmlReader.readNext();
-    while (!xmlReader.atEnd())
-    {
-        if (xmlReader.isStartElement())
-        {
-
-        }
-        xmlReader.readNext();
-    }
+    emit loadCompanyData(&file);
     file.close();
     return true;
 }
