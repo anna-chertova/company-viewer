@@ -15,6 +15,7 @@ public:
 
 signals:
 
+    void newDepartment(const QString &name);
 };
 
 #endif // COMPANYDATALOADER_H

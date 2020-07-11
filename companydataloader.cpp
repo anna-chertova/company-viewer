@@ -15,7 +15,18 @@ bool CompanyDataLoader::parseFile(QFile *file)
     {
         if (xmlReader.isStartElement())
         {
+            if(xmlReader.name() == "department") { // found department
+                // read attributes
+                foreach(const QXmlStreamAttribute attr, xmlReader.attributes()) {
+                    QString attributeName = attr.name().toString();
+                    if(attributeName == "name") {
+                        emit newDepartment(attributeName);
+                    }
+                }
+            }
+            else if(xmlReader.name() == "employment") { // found employee
 
+            }
         }
         xmlReader.readNext();
     }
