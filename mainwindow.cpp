@@ -21,9 +21,9 @@ MainWindow::MainWindow(QWidget *parent)
     setWindowTitle("Company viewer - Unigine");
 
     // Adjust standard model
-    standardModel->setHorizontalHeaderLabels({"Department name",
-                                              "Num employees",
-                                              "Avg salary"});
+    standardModel->setHorizontalHeaderLabels({tr("Name"),
+                                              tr("Position"),
+                                              tr("Salary")});
 
     QList<QStandardItem *> preparedRow = prepareRow("Network department",
                                                     "1",
