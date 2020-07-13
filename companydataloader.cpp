@@ -23,7 +23,8 @@ bool CompanyDataLoader::parseFile(QFile *file)
 
 void CompanyDataLoader::parseXml()
 {
-    Q_ASSERT(xmlReader.isStartElement() && xmlReader.name() == QLatin1String("xml"));
+    Q_ASSERT(xmlReader.isStartElement() &&
+             xmlReader.name() == QLatin1String("xml"));
 
     while (xmlReader.readNextStartElement()) {
         if (xmlReader.name() == QLatin1String("departments"))
@@ -35,7 +36,8 @@ void CompanyDataLoader::parseXml()
 
 void CompanyDataLoader::parseDepartments()
 {
-    Q_ASSERT(xmlReader.isStartElement() && xmlReader.name() == QLatin1String("departments"));
+    Q_ASSERT(xmlReader.isStartElement() &&
+             xmlReader.name() == QLatin1String("departments"));
 
     while (xmlReader.readNextStartElement()) {
         if (xmlReader.name() == QLatin1String("department"))
@@ -52,8 +54,11 @@ void CompanyDataLoader::parseDepartments()
 
 Department CompanyDataLoader::parseDepartment()
 {
-    Q_ASSERT(xmlReader.isStartElement() && xmlReader.name() == QLatin1String("department"));
-    Department d(xmlReader.attributes().value(QStringLiteral("name")).toString());
+    Q_ASSERT(xmlReader.isStartElement() &&
+             xmlReader.name() == QLatin1String("department"));
+
+    Department d(xmlReader.attributes().value(
+                     QStringLiteral("name")).toString());
 
     while (xmlReader.readNextStartElement()) {
         if (xmlReader.name() == QLatin1String("employments"))
@@ -67,7 +72,8 @@ Department CompanyDataLoader::parseDepartment()
 
 std::list<Employee> CompanyDataLoader::parseEmployments()
 {
-    Q_ASSERT(xmlReader.isStartElement() && xmlReader.name() == QLatin1String("employments"));
+    Q_ASSERT(xmlReader.isStartElement() &&
+             xmlReader.name() == QLatin1String("employments"));
 
     std::list<Employee> employees;
 
@@ -85,7 +91,8 @@ std::list<Employee> CompanyDataLoader::parseEmployments()
 
 Employee CompanyDataLoader::parseEmployment()
 {
-    Q_ASSERT(xmlReader.isStartElement() && xmlReader.name() == QLatin1String("employment"));
+    Q_ASSERT(xmlReader.isStartElement() &&
+             xmlReader.name() == QLatin1String("employment"));
 
     Employee emp;
 
@@ -109,30 +116,35 @@ Employee CompanyDataLoader::parseEmployment()
 
 QString CompanyDataLoader::parseSurname()
 {
-    Q_ASSERT(xmlReader.isStartElement() && xmlReader.name() == QLatin1String("surname"));
+    Q_ASSERT(xmlReader.isStartElement() &&
+             xmlReader.name() == QLatin1String("surname"));
     return xmlReader.readElementText();
 }
 
 QString CompanyDataLoader::parseName()
 {
-    Q_ASSERT(xmlReader.isStartElement() && xmlReader.name() == QLatin1String("name"));
+    Q_ASSERT(xmlReader.isStartElement() &&
+             xmlReader.name() == QLatin1String("name"));
     return xmlReader.readElementText();
 }
 
 QString CompanyDataLoader::parseMiddleName()
 {
-    Q_ASSERT(xmlReader.isStartElement() && xmlReader.name() == QLatin1String("middleName"));
+    Q_ASSERT(xmlReader.isStartElement() &&
+             xmlReader.name() == QLatin1String("middleName"));
     return xmlReader.readElementText();
 }
 
 QString CompanyDataLoader::parseFunction()
 {
-    Q_ASSERT(xmlReader.isStartElement() && xmlReader.name() == QLatin1String("function"));
+    Q_ASSERT(xmlReader.isStartElement() &&
+             xmlReader.name() == QLatin1String("function"));
     return xmlReader.readElementText();
 }
 
 int CompanyDataLoader::parseSalary()
 {
-    Q_ASSERT(xmlReader.isStartElement() && xmlReader.name() == QLatin1String("salary"));
+    Q_ASSERT(xmlReader.isStartElement() &&
+             xmlReader.name() == QLatin1String("salary"));
     return xmlReader.readElementText().toInt();
 }

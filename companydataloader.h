@@ -1,3 +1,8 @@
+/*
+ * (c) Anna Chertova 2020
+ * This class manages loading data from xml file
+ */
+
 #ifndef COMPANYDATALOADER_H
 #define COMPANYDATALOADER_H
 
