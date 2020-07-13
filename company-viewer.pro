@@ -24,6 +24,7 @@ SOURCES += \
 HEADERS += \
     companydata.h \
     companydataloader.h \
+    department.h \
     mainwindow.h
 
 FORMS += \

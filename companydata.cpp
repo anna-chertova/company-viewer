@@ -5,10 +5,6 @@ CompanyData::CompanyData(QObject *)
 
 }
 
-void CompanyData::addDepartment(const QString &name) {
-    departments.append(Department(name));
-}
-
-void CompanyData::onNewDepartment(const QString &name) {
-    addDepartment(name);
+void CompanyData::addDepartment(const Department &department) {
+    departments.push_back(department);
 }
