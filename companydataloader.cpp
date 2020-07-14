@@ -42,8 +42,7 @@ void CompanyDataLoader::parseDepartments()
     while (xmlReader.readNextStartElement()) {
         if (xmlReader.name() == QLatin1String("department"))
         {
-            Department d = parseDepartment();
-            emit newDepartment(d);
+            emit newDepartment(parseDepartment());
         }
         else
         {

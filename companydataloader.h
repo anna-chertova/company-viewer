@@ -24,7 +24,7 @@ public:
 
 signals:
 
-    void newDepartment(Department &d);
+    void newDepartment(Department d);
 
 private:
 
