@@ -11,38 +11,11 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
-    , treeView(new QTreeView(this))
-    , standardModel(new QStandardItemModel(this))
+    , treeView(new QTreeView(this))    
 {
     ui->setupUi(this);
-
     createActions();
-
-    setWindowTitle("Company viewer - Unigine");
-
-    // Adjust standard model
-    standardModel->setHorizontalHeaderLabels({tr("Name"),
-                                              tr("Position"),
-                                              tr("Salary")});
-
-    QList<QStandardItem *> preparedRow = prepareRow("Network department",
-                                                    "1",
-                                                    "35000");
-    QStandardItem *root = standardModel->invisibleRootItem();
-    root->appendRow(preparedRow);
-
-    QList<QStandardItem *> secondRow = prepareRow("Anna Chertova",
-                                                  "Senior Sotware Developer",
-                                                  "35000");
-    preparedRow.first()->appendRow(secondRow);
-
-    // Adjust treeView
     setCentralWidget(treeView);
-    treeView->setModel(standardModel);
-    treeView->expandAll();
-    for(int i = 0; i < standardModel->rowCount(); ++i) {
-        treeView->resizeColumnToContents(i);
-    }
 }
 
 MainWindow::~MainWindow()
@@ -50,8 +23,20 @@ MainWindow::~MainWindow()
     // parent will destroy its children
 }
 
+void MainWindow::setModel(QAbstractItemModel *model)
+{
+    treeView->setModel(model);
+    treeView->expandAll();
+    int row_count = model->rowCount();
+    for(int i = 0; i < row_count; ++i) {
+        treeView->resizeColumnToContents(i);
+    }
+}
+
 bool MainWindow::loadFile(const QString &fileName)
 {
+    /// TODO: move actual file loading into CompanyDataLoader logic
+    /// but how we return file opening error from that???
     QFile file(fileName);
     if (!file.open(QFile::ReadOnly | QFile::Text))
     {
@@ -65,15 +50,6 @@ bool MainWindow::loadFile(const QString &fileName)
     emit loadCompanyData(&file);
     file.close();
     return true;
-}
-
-QList<QStandardItem *> MainWindow::prepareRow(const QString &first,
-                                              const QString &second,
-                                              const QString &third) const
-{
-    return {new QStandardItem(first),
-            new QStandardItem(second),
-            new QStandardItem(third)};
 }
 
 void MainWindow::createActions()

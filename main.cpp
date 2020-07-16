@@ -8,9 +8,7 @@ int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 
-    MainWindow w;    
-    w.show();
-
+    MainWindow w;
     CompanyData companyData;
     CompanyDataLoader dataLoader;
 
@@ -19,5 +17,8 @@ int main(int argc, char *argv[])
     QObject::connect(&w, &MainWindow::loadCompanyData,
                      &dataLoader, &CompanyDataLoader::parseFile);
 
+    w.setModel(companyData.getModel());
+
+    w.show();
     return a.exec();
 }

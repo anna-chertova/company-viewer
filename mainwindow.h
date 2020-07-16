@@ -11,8 +11,7 @@
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 class QTreeView;
-class QStandardItemModel;
-class QStandardItem;
+class QAbstractItemModel;
 class QFile;
 QT_END_NAMESPACE
 
@@ -24,6 +23,7 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+    void setModel(QAbstractItemModel *model);
     bool loadFile(const QString &fileName);
 
 signals:
@@ -39,11 +39,7 @@ private:
 
 private:
     Ui::MainWindow *ui;
-
     QTreeView *treeView;
-    QStandardItemModel *standardModel;
-    QList<QStandardItem *> prepareRow(const QString &first,
-                                      const QString &second,
-                                      const QString &third) const;
+
 };
 #endif // MAINWINDOW_H

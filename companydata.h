@@ -9,8 +9,10 @@
 #include "department.h"
 #include <list>
 #include <QObject>
+#include <QStandardItemModel>
 #include <QString>
 
+/// TODO: shouldn't CompanyData be a implementation of QAbstractItemDataModel?
 class CompanyData: public QObject
 {
     Q_OBJECT
@@ -18,6 +20,7 @@ class CompanyData: public QObject
 public:
 
     explicit CompanyData(QObject *parent = nullptr);
+    QAbstractItemModel *getModel();
 
 public slots:
 
@@ -26,6 +29,7 @@ public slots:
 private:
 
     std::list<Department> departments;
+    QStandardItemModel standardModel;
 };
 
 #endif // COMPANYDATA_H
