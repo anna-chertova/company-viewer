@@ -30,21 +30,8 @@ void MainWindow::setModel(QAbstractItemModel *model)
 }
 
 bool MainWindow::loadFile(const QString &fileName)
-{
-    /// TODO: move actual file loading into CompanyDataLoader logic
-    /// but how we return file opening error from that???
-    QFile file(fileName);
-    if (!file.open(QFile::ReadOnly | QFile::Text))
-    {
-        QMessageBox::warning(this,
-                             tr("Error opening file"),
-                             tr("Could not open file"),
-                             QMessageBox::Ok);
-        return false;
-    }
-
-    emit loadCompanyData(&file);
-    file.close();
+{    
+    emit loadCompanyData(fileName);
     setWindowTitle("Company Viewer - " + fileName);
     return true;
 }

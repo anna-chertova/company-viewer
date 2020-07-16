@@ -27,7 +27,7 @@ public:
     bool loadFile(const QString &fileName);
 
 signals:
-    void loadCompanyData(QFile *file);
+    void loadCompanyData(const QString &fileName);
     void clearCompanyData();
 
 public slots:

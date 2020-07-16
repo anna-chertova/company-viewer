@@ -20,7 +20,7 @@ public:
 
     explicit CompanyDataLoader(QObject *parent = nullptr);
 
-    bool parseFile(QFile *file);
+    void parseFile(const QString &fileName);
     QString errorString() const;
 
 signals:

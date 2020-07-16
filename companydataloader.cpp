@@ -13,9 +13,16 @@ QString CompanyDataLoader::errorString() const
             .arg(xmlReader.columnNumber());
 }
 
-bool CompanyDataLoader::parseFile(QFile *file)
+void CompanyDataLoader::parseFile(const QString &fileName)
 {
-    xmlReader.setDevice(file);
+    QFile file(fileName);
+    if (!file.open(QFile::ReadOnly | QFile::Text))
+    {
+        emit error(tr("Error opening file"),tr("Could not open file"));
+        return;
+    }
+
+    xmlReader.setDevice(&file);
 
     if (xmlReader.readNextStartElement()) {
        if (xmlReader.name() == QLatin1String("departments")) {
@@ -28,7 +35,7 @@ bool CompanyDataLoader::parseFile(QFile *file)
        emit error(tr("Error parsing file"), errorString());
    }
 
-   return !xmlReader.error();
+   file.close();
 }
 
 void CompanyDataLoader::parseDepartments()
