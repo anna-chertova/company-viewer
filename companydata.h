@@ -6,62 +6,32 @@
 #ifndef COMPANYDATA_H
 #define COMPANYDATA_H
 
-#include <cmath>
-#include <QList>
+#include "department.h"
+#include <list>
 #include <QObject>
+#include <QStandardItemModel>
 #include <QString>
 
+/// TODO: shouldn't CompanyData be a implementation of QAbstractItemDataModel?
 class CompanyData: public QObject
 {
     Q_OBJECT
 
 public:
+
     explicit CompanyData(QObject *parent = nullptr);
+    QAbstractItemModel *getModel();
+
+public slots:
+
+    void addDepartment(Department department);
+    void clear();
 
 private:
-    struct Employee {
 
-        Employee(const QString& n, const QString &p, int s):
-            name(n), position(p), salary(s) {
-        }
-
-        QString name;
-        QString position;
-        int salary;
-    };
-
-    struct Department {
-        QString name;
-        QList<Employee> employees;
-
-        Department(const QString& n): name(n) {};
-
-        int getNumEmployees() const {
-            return employees.count();
-        }
-
-        int getAvgSalary() const {
-            int sum = 0;
-            for (auto e : employees) {
-                sum += e.salary;
-            }
-            return std::round(static_cast<float>(sum)/
-                              static_cast<float>(employees.count()));
-        }
-
-        void addEmployee(const QString& name,
-                         const QString& position,
-                         int salary) {
-            employees.append(Employee(name, position, salary));
-        }
-    };
-
-    QList<Department> departments;
-
-    void addDepartment(const QString &name);
-
-    private slots:
-        void onNewDepartment(const QString &name);
+    std::list<Department> departments;
+    QStandardItemModel standardModel;
+    QStandardItem *root;
 };
 
 #endif // COMPANYDATA_H

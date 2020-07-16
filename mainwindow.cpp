@@ -11,38 +11,11 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
-    , treeView(new QTreeView(this))
-    , standardModel(new QStandardItemModel(this))
+    , treeView(new QTreeView(this))    
 {
     ui->setupUi(this);
-
     createActions();
-
-    setWindowTitle("Company viewer - Unigine");
-
-    // Adjust standard model
-    standardModel->setHorizontalHeaderLabels({"Department name",
-                                              "Num employees",
-                                              "Avg salary"});
-
-    QList<QStandardItem *> preparedRow = prepareRow("Network department",
-                                                    "1",
-                                                    "35000");
-    QStandardItem *root = standardModel->invisibleRootItem();
-    root->appendRow(preparedRow);
-
-    QList<QStandardItem *> secondRow = prepareRow("Anna Chertova",
-                                                  "Senior Sotware Developer",
-                                                  "35000");
-    preparedRow.first()->appendRow(secondRow);
-
-    // Adjust treeView
     setCentralWidget(treeView);
-    treeView->setModel(standardModel);
-    treeView->expandAll();
-    for(int i = 0; i < standardModel->rowCount(); ++i) {
-        treeView->resizeColumnToContents(i);
-    }
 }
 
 MainWindow::~MainWindow()
@@ -50,47 +23,34 @@ MainWindow::~MainWindow()
     // parent will destroy its children
 }
 
-bool MainWindow::loadFile(const QString &fileName)
+void MainWindow::setModel(QAbstractItemModel *model)
 {
-    QFile file(fileName);
-    if (!file.open(QFile::ReadOnly | QFile::Text))
-    {
-        QMessageBox::warning(this,
-                             tr("Error opening file"),
-                             tr("Could not open file"),
-                             QMessageBox::Ok);
-        return false;
-    }
-
-    emit loadCompanyData(&file);
-    file.close();
-    return true;
+    treeView->setModel(model);
+    update();
 }
 
-QList<QStandardItem *> MainWindow::prepareRow(const QString &first,
-                                              const QString &second,
-                                              const QString &third) const
-{
-    return {new QStandardItem(first),
-            new QStandardItem(second),
-            new QStandardItem(third)};
+bool MainWindow::loadFile(const QString &fileName)
+{    
+    emit loadCompanyData(fileName);
+    setWindowTitle("Company Viewer - " + fileName);
+    return true;
 }
 
 void MainWindow::createActions()
 {
     // Create menu actions
-    QMenu *menuFile = menuBar()->addMenu(tr("&File"));
-    QAction *actionOpen = menuFile->addAction(tr("&Open..."),
+    menuFile = menuBar()->addMenu(tr("&File"));
+    actionOpen = menuFile->addAction(tr("&Open..."),
                                               this,
                                               &MainWindow::open);
     actionOpen->setShortcut(QKeySequence::Open);
 
-    QAction *actionSaveAs = menuFile->addAction(tr("&Save as..."),
+    actionSaveAs = menuFile->addAction(tr("&Save as..."),
                                                 this,
                                                 &MainWindow::saveAs);
     actionSaveAs->setEnabled(false);
 
-    QAction *actionClose = menuFile->addAction(tr("&Close"),
+    actionClose = menuFile->addAction(tr("&Close"),
                                                this,
                                                &MainWindow::close);
     actionClose->setEnabled(false);
@@ -118,10 +78,13 @@ static void initializeXmlFileDialog(QFileDialog &dialog,
 
 void MainWindow::open()
 {
+    close();
     QFileDialog dialog(this, tr("Open File"));
     initializeXmlFileDialog(dialog, QFileDialog::AcceptOpen);
     while (dialog.exec() == QDialog::Accepted &&
            !loadFile(dialog.selectedFiles().first())) {}
+    actionSaveAs->setEnabled(true);
+    actionClose->setEnabled(true);
 }
 
 void MainWindow::saveAs()
@@ -134,6 +97,22 @@ void MainWindow::saveAs()
 
 void MainWindow::close()
 {
-    /// TODO: clear ui connected with file contents here
+    setWindowTitle("Company Viewer");
+    actionSaveAs->setEnabled(false);
+    actionClose->setEnabled(false);
+    emit clearCompanyData();
 }
 
+void MainWindow::update()
+{
+    treeView->expandAll();
+    int row_count = treeView->model()->rowCount();
+    for(int i = 0; i < row_count; ++i) {
+        treeView->resizeColumnToContents(i);
+    }
+}
+
+void MainWindow::errorDialog(const QString &problem, const QString &error)
+{
+    QMessageBox::warning(this, problem, error, QMessageBox::Ok);
+}
