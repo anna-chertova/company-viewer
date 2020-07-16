@@ -49,24 +49,25 @@ bool MainWindow::loadFile(const QString &fileName)
 
     emit loadCompanyData(&file);
     file.close();
+    setWindowTitle("Company Viewer - " + fileName);
     return true;
 }
 
 void MainWindow::createActions()
 {
     // Create menu actions
-    QMenu *menuFile = menuBar()->addMenu(tr("&File"));
-    QAction *actionOpen = menuFile->addAction(tr("&Open..."),
+    menuFile = menuBar()->addMenu(tr("&File"));
+    actionOpen = menuFile->addAction(tr("&Open..."),
                                               this,
                                               &MainWindow::open);
     actionOpen->setShortcut(QKeySequence::Open);
 
-    QAction *actionSaveAs = menuFile->addAction(tr("&Save as..."),
+    actionSaveAs = menuFile->addAction(tr("&Save as..."),
                                                 this,
                                                 &MainWindow::saveAs);
     actionSaveAs->setEnabled(false);
 
-    QAction *actionClose = menuFile->addAction(tr("&Close"),
+    actionClose = menuFile->addAction(tr("&Close"),
                                                this,
                                                &MainWindow::close);
     actionClose->setEnabled(false);
@@ -98,6 +99,8 @@ void MainWindow::open()
     initializeXmlFileDialog(dialog, QFileDialog::AcceptOpen);
     while (dialog.exec() == QDialog::Accepted &&
            !loadFile(dialog.selectedFiles().first())) {}
+    actionSaveAs->setEnabled(true);
+    actionClose->setEnabled(true);
 }
 
 void MainWindow::saveAs()
@@ -110,6 +113,9 @@ void MainWindow::saveAs()
 
 void MainWindow::close()
 {
+    setWindowTitle("Company Viewer");
+    actionSaveAs->setEnabled(false);
+    actionClose->setEnabled(false);
     /// TODO: clear ui connected with file contents here
 }
 

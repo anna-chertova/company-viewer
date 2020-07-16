@@ -40,6 +40,10 @@ private:
 private:
     Ui::MainWindow *ui;
     QTreeView *treeView;
+    QMenu *menuFile;
+    QAction *actionOpen;
+    QAction *actionSaveAs;
+    QAction *actionClose;
 
 };
 #endif // MAINWINDOW_H
