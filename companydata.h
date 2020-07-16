@@ -24,12 +24,14 @@ public:
 
 public slots:
 
-    void addDepartment(const Department &department);
+    void addDepartment(Department department);
+    void clear();
 
 private:
 
     std::list<Department> departments;
     QStandardItemModel standardModel;
+    QStandardItem *root;
 };
 
 #endif // COMPANYDATA_H

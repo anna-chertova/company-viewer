@@ -26,11 +26,7 @@ MainWindow::~MainWindow()
 void MainWindow::setModel(QAbstractItemModel *model)
 {
     treeView->setModel(model);
-    treeView->expandAll();
-    int row_count = model->rowCount();
-    for(int i = 0; i < row_count; ++i) {
-        treeView->resizeColumnToContents(i);
-    }
+    update();
 }
 
 bool MainWindow::loadFile(const QString &fileName)
@@ -95,6 +91,7 @@ static void initializeXmlFileDialog(QFileDialog &dialog,
 
 void MainWindow::open()
 {
+    close();
     QFileDialog dialog(this, tr("Open File"));
     initializeXmlFileDialog(dialog, QFileDialog::AcceptOpen);
     while (dialog.exec() == QDialog::Accepted &&
@@ -116,6 +113,19 @@ void MainWindow::close()
     setWindowTitle("Company Viewer");
     actionSaveAs->setEnabled(false);
     actionClose->setEnabled(false);
-    /// TODO: clear ui connected with file contents here
+    emit clearCompanyData();
 }
 
+void MainWindow::update()
+{
+    treeView->expandAll();
+    int row_count = treeView->model()->rowCount();
+    for(int i = 0; i < row_count; ++i) {
+        treeView->resizeColumnToContents(i);
+    }
+}
+
+void MainWindow::errorDialog(const QString &problem, const QString &error)
+{
+    QMessageBox::warning(this, problem, error, QMessageBox::Ok);
+}

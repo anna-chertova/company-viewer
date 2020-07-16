@@ -14,8 +14,14 @@ int main(int argc, char *argv[])
 
     QObject::connect(&dataLoader, &CompanyDataLoader::newDepartment,
                      &companyData, &CompanyData::addDepartment);
+    QObject::connect(&dataLoader, &CompanyDataLoader::newDepartment,
+                     &w, &MainWindow::update);
     QObject::connect(&w, &MainWindow::loadCompanyData,
-                     &dataLoader, &CompanyDataLoader::parseFile);
+                     &dataLoader, &CompanyDataLoader::parseFile);    
+    QObject::connect(&dataLoader, &CompanyDataLoader::error,
+                     &w, &MainWindow::errorDialog);
+    QObject::connect(&w, &MainWindow::clearCompanyData,
+                     &companyData, &CompanyData::clear);
 
     w.setModel(companyData.getModel());
 

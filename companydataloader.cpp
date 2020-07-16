@@ -5,33 +5,30 @@ CompanyDataLoader::CompanyDataLoader(QObject *parent) : QObject(parent)
 
 }
 
+QString CompanyDataLoader::errorString() const
+{
+    return QObject::tr("%1\nLine %2, column %3")
+            .arg(xmlReader.errorString())
+            .arg(xmlReader.lineNumber())
+            .arg(xmlReader.columnNumber());
+}
+
 bool CompanyDataLoader::parseFile(QFile *file)
 {
     xmlReader.setDevice(file);
 
     if (xmlReader.readNextStartElement()) {
-       if (xmlReader.name() == QLatin1String("xml")) {
-           parseXml();
+       if (xmlReader.name() == QLatin1String("departments")) {
+           parseDepartments();
        } else {
-           xmlReader.raiseError(QObject::tr("The file is not an XML file."));
+           xmlReader.raiseError(QObject::tr("The file is not a departments file."));
        }
    }
+   if(xmlReader.error()) {
+       emit error(tr("Error parsing file"), errorString());
+   }
 
-    return !xmlReader.error();
-}
-
-
-void CompanyDataLoader::parseXml()
-{
-    Q_ASSERT(xmlReader.isStartElement() &&
-             xmlReader.name() == QLatin1String("xml"));
-
-    while (xmlReader.readNextStartElement()) {
-        if (xmlReader.name() == QLatin1String("departments"))
-            parseDepartments();
-        else
-            xmlReader.skipCurrentElement();
-    }
+   return !xmlReader.error();
 }
 
 void CompanyDataLoader::parseDepartments()

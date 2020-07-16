@@ -21,14 +21,15 @@ public:
     explicit CompanyDataLoader(QObject *parent = nullptr);
 
     bool parseFile(QFile *file);
+    QString errorString() const;
 
 signals:
 
     void newDepartment(Department d);
+    void error(const QString &name, const QString &text);
 
 private:
 
-    void parseXml();
     void parseDepartments();
     Department parseDepartment();
     std::list<Employee> parseEmployments();

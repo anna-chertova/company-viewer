@@ -28,6 +28,11 @@ public:
 
 signals:
     void loadCompanyData(QFile *file);
+    void clearCompanyData();
+
+public slots:
+    void update();
+    void errorDialog(const QString &problem, const QString &error);
 
 private slots:
     void open();

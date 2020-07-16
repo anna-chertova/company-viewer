@@ -2,41 +2,50 @@
 
 CompanyData::CompanyData(QObject *)
 {
-    standardModel.setHorizontalHeaderLabels({tr("Surname"),
+    standardModel.setHorizontalHeaderLabels({tr("Department"),
+                                             tr("Num employees"),
+                                             tr("Surname"),
                                              tr("Name"),
                                              tr("Middlename"),
                                              tr("Position"),
                                              tr("Salary")});
-
-    /*
-    QList<QStandardItem *> preparedRow = {"Network department",
-                                          "1",
-                                          "35000"};
-    QStandardItem *root = standardModel->invisibleRootItem();
-    root->appendRow(preparedRow);
-
-    QList<QStandardItem *> secondRow = prepareRow("Anna Chertova",
-                                                  "Senior Sotware Developer",
-                                                  "35000");
-    preparedRow.first()->appendRow(secondRow);*/
+    root = standardModel.invisibleRootItem();
 }
-/*
-QList<QStandardItem *> MainWindow::prepareRow(const QString &first,
-                                              const QString &second,
-                                              const QString &third) const
-{
-    return {new QStandardItem(first),
-            new QStandardItem(second),
-            new QStandardItem(third)};
-}
-*/
 
 QAbstractItemModel *CompanyData::getModel()
 {
     return &standardModel;
 }
 
-void CompanyData::addDepartment(const Department &department)
+void CompanyData::clear()
+{
+    departments.clear();
+    int row_count = standardModel.rowCount();
+    standardModel.removeRows(0, row_count);
+}
+
+void CompanyData::addDepartment(Department department)
 {
     departments.push_back(department);
+
+    QList<QStandardItem*> departmentRow = {        
+        new QStandardItem(department.name),
+        new QStandardItem(QString::number(department.getNumEmployees())),        
+        new QStandardItem(),
+        new QStandardItem(),
+        new QStandardItem(),
+        new QStandardItem(),
+        new QStandardItem(QString::number(department.getAvgSalary()))};
+    root->appendRow(departmentRow);
+
+    for (auto emp : department.employees) {
+        departmentRow.first()->appendRow(
+        {new QStandardItem(),
+         new QStandardItem(),
+         new QStandardItem(emp.surname),
+         new QStandardItem(emp.name),
+         new QStandardItem(emp.middlename),
+         new QStandardItem(emp.position),
+         new QStandardItem(QString::number(emp.salary))});
+    }
 }
