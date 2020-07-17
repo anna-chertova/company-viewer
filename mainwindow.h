@@ -41,8 +41,6 @@ private slots:
 
 private:
     void createActions();
-    bool loadFile(const QString &fileName);
-    bool saveFile(const QString &fileName);
 
 private:
     Ui::MainWindow *ui;

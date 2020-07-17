@@ -1,8 +1,6 @@
 #include <QFileDialog>
 #include <QHeaderView>
 #include <QMessageBox>
-#include <QStandardItemModel>
-#include <QStandardItem>
 #include <QStandardPaths>
 #include <QTreeView>
 #include "mainwindow.h"
@@ -29,43 +27,37 @@ void MainWindow::setModel(QAbstractItemModel *model)
     update();
 }
 
-static void initializeXmlFileDialog(QFileDialog &dialog,
-                                    QFileDialog::AcceptMode acceptMode)
-{
-    static bool firstDialog = true;
-
-    if(firstDialog) {
-        firstDialog = false;
-        const QStringList filesLocations = QStandardPaths::standardLocations(
-                    QStandardPaths::DocumentsLocation);
-        dialog.setDirectory(filesLocations.isEmpty() ?
-                                QDir::currentPath() : filesLocations.last());
-    }
-
-    QStringList mimeTypeFilters({"application/xml"});
-    dialog.setMimeTypeFilters(mimeTypeFilters);
-    dialog.selectMimeTypeFilter("application/xml");
-    if(acceptMode == QFileDialog::AcceptSave)
-        dialog.setDefaultSuffix("xml");
-}
-
 void MainWindow::open()
 {
     close();
-    QFileDialog dialog(this, tr("Open File"));
-    initializeXmlFileDialog(dialog, QFileDialog::AcceptOpen);
-    while (dialog.exec() == QDialog::Accepted &&
-           !loadFile(dialog.selectedFiles().first())) {}
+
+    const QStringList filesLocations = QStandardPaths::standardLocations(
+                QStandardPaths::DocumentsLocation);
+    QString fileName = QFileDialog::getOpenFileName(
+                this,
+                tr("Open File"),
+                filesLocations.isEmpty() ? QDir::currentPath() : filesLocations.last(),
+                tr("XML files (*.xml)"));
+    if(fileName.isNull()) return;
+    /// TODO: think about behavior when error occurred while opening file
+    emit loadCompanyData(fileName);
+    setWindowTitle("Company Viewer - " + fileName);
     actionSaveAs->setEnabled(true);
     actionClose->setEnabled(true);
 }
 
 void MainWindow::saveAs()
 {
-    QFileDialog dialog(this, tr("Save File As"));
-    initializeXmlFileDialog(dialog, QFileDialog::AcceptSave);
-    while (dialog.exec() == QDialog::Accepted &&
-           !saveFile(dialog.selectedFiles().first())) {}
+    const QStringList filesLocations = QStandardPaths::standardLocations(
+                QStandardPaths::DocumentsLocation);
+    QString fileName = QFileDialog::getSaveFileName(
+                this,
+                tr("Save File As"),
+                filesLocations.last(),
+                tr("XML files (*.xml)"));
+    if(fileName.isNull()) return;
+    emit saveCompanyData(fileName);
+    setWindowTitle("Company Viewer - " + fileName);
 }
 
 void MainWindow::close()
@@ -88,20 +80,6 @@ void MainWindow::update()
 void MainWindow::errorDialog(const QString &problem, const QString &error)
 {
     QMessageBox::warning(this, problem, error, QMessageBox::Ok);
-}
-
-bool MainWindow::loadFile(const QString &fileName)
-{
-    /// TODO: think about behavior when error occurred while openingin file
-    emit loadCompanyData(fileName);
-    setWindowTitle("Company Viewer - " + fileName);
-    return true;
-}
-
-bool MainWindow::saveFile(const QString &fileName)
-{
-    emit saveCompanyData(fileName);
-    return true;
 }
 
 void MainWindow::createActions()
