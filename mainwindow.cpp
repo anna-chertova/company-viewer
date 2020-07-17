@@ -29,33 +29,6 @@ void MainWindow::setModel(QAbstractItemModel *model)
     update();
 }
 
-bool MainWindow::loadFile(const QString &fileName)
-{    
-    emit loadCompanyData(fileName);
-    setWindowTitle("Company Viewer - " + fileName);
-    return true;
-}
-
-void MainWindow::createActions()
-{
-    // Create menu actions
-    menuFile = menuBar()->addMenu(tr("&File"));
-    actionOpen = menuFile->addAction(tr("&Open..."),
-                                              this,
-                                              &MainWindow::open);
-    actionOpen->setShortcut(QKeySequence::Open);
-
-    actionSaveAs = menuFile->addAction(tr("&Save as..."),
-                                                this,
-                                                &MainWindow::saveAs);
-    actionSaveAs->setEnabled(false);
-
-    actionClose = menuFile->addAction(tr("&Close"),
-                                               this,
-                                               &MainWindow::close);
-    actionClose->setEnabled(false);
-}
-
 static void initializeXmlFileDialog(QFileDialog &dialog,
                                     QFileDialog::AcceptMode acceptMode)
 {
@@ -92,7 +65,7 @@ void MainWindow::saveAs()
     QFileDialog dialog(this, tr("Save File As"));
     initializeXmlFileDialog(dialog, QFileDialog::AcceptSave);
     while (dialog.exec() == QDialog::Accepted &&
-           !loadFile(dialog.selectedFiles().first())) {}
+           !saveFile(dialog.selectedFiles().first())) {}
 }
 
 void MainWindow::close()
@@ -115,4 +88,38 @@ void MainWindow::update()
 void MainWindow::errorDialog(const QString &problem, const QString &error)
 {
     QMessageBox::warning(this, problem, error, QMessageBox::Ok);
+}
+
+bool MainWindow::loadFile(const QString &fileName)
+{
+    /// TODO: think about behavior when error occurred while openingin file
+    emit loadCompanyData(fileName);
+    setWindowTitle("Company Viewer - " + fileName);
+    return true;
+}
+
+bool MainWindow::saveFile(const QString &fileName)
+{
+    emit saveCompanyData(fileName);
+    return true;
+}
+
+void MainWindow::createActions()
+{
+    // Create menu actions
+    menuFile = menuBar()->addMenu(tr("&File"));
+    actionOpen = menuFile->addAction(tr("&Open..."),
+                                              this,
+                                              &MainWindow::open);
+    actionOpen->setShortcut(QKeySequence::Open);
+
+    actionSaveAs = menuFile->addAction(tr("&Save as..."),
+                                                this,
+                                                &MainWindow::saveAs);
+    actionSaveAs->setEnabled(false);
+
+    actionClose = menuFile->addAction(tr("&Close"),
+                                               this,
+                                               &MainWindow::close);
+    actionClose->setEnabled(false);
 }

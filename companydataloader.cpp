@@ -1,6 +1,8 @@
 #include "companydataloader.h"
+#include <QFile>
 
-CompanyDataLoader::CompanyDataLoader(QObject *parent) : QObject(parent)
+CompanyDataLoader::CompanyDataLoader(CompanyData *data, QObject *parent)
+    : QObject(parent), companyData(data)
 {
 
 }
@@ -16,9 +18,9 @@ QString CompanyDataLoader::errorString() const
 void CompanyDataLoader::parseFile(const QString &fileName)
 {
     QFile file(fileName);
-    if (!file.open(QFile::ReadOnly | QFile::Text))
+    if (!file.open(QFile::ReadWrite | QFile::Text))
     {
-        emit error(tr("Error opening file"),tr("Could not open file"));
+        emit error(tr("Error opening file"),tr("Could not open file %1").arg(fileName));
         return;
     }
 
@@ -28,11 +30,11 @@ void CompanyDataLoader::parseFile(const QString &fileName)
        if (xmlReader.name() == QLatin1String("departments")) {
            parseDepartments();
        } else {
-           xmlReader.raiseError(QObject::tr("The file is not a departments file."));
+           xmlReader.raiseError(QObject::tr("The file %1 is not a departments file.").arg(fileName));
        }
    }
    if(xmlReader.error()) {
-       emit error(tr("Error parsing file"), errorString());
+       emit error(tr("Error parsing file %1").arg(fileName), errorString());
    }
 
    file.close();
@@ -46,7 +48,8 @@ void CompanyDataLoader::parseDepartments()
     while (xmlReader.readNextStartElement()) {
         if (xmlReader.name() == QLatin1String("department"))
         {
-            emit newDepartment(parseDepartment());
+            companyData->addDepartment(parseDepartment());
+            emit updateData();
         }
         else
         {
@@ -73,12 +76,12 @@ Department CompanyDataLoader::parseDepartment()
     return d;
 }
 
-std::list<Employee> CompanyDataLoader::parseEmployments()
+std::vector<Employee> CompanyDataLoader::parseEmployments()
 {
     Q_ASSERT(xmlReader.isStartElement() &&
              xmlReader.name() == QLatin1String("employments"));
 
-    std::list<Employee> employees;
+    std::vector<Employee> employees;
 
     while (xmlReader.readNextStartElement()) {
         if (xmlReader.name() == QLatin1String("employment")) {

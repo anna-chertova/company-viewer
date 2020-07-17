@@ -7,7 +7,7 @@
 #define DEPARTMENT_H
 
 #include <cmath>
-#include <list>
+#include <vector>
 #include <QString>
 
 struct Employee {
@@ -31,7 +31,7 @@ struct Employee {
 
 struct Department {
     QString name;
-    std::list<Employee> employees;
+    std::vector<Employee> employees;
 
     Department() {};
     Department(const QString& n): name(n) {};
@@ -47,18 +47,6 @@ struct Department {
         }
         return std::round(static_cast<float>(sum)/
                           static_cast<float>(employees.size()));
-    }
-
-    void addEmployee(const QString &surname,
-                     const QString& name,
-                     const QString& middlename,
-                     const QString& position,
-                     int salary) {
-        employees.push_back(Employee(surname,
-                                     name,
-                                     middlename,
-                                     position,
-                                     salary));
     }
 };
 

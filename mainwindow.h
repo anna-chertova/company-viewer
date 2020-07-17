@@ -24,10 +24,10 @@ public:
     ~MainWindow();
 
     void setModel(QAbstractItemModel *model);
-    bool loadFile(const QString &fileName);
 
 signals:
     void loadCompanyData(const QString &fileName);
+    void saveCompanyData(const QString &fileName);
     void clearCompanyData();
 
 public slots:
@@ -41,6 +41,8 @@ private slots:
 
 private:
     void createActions();
+    bool loadFile(const QString &fileName);
+    bool saveFile(const QString &fileName);
 
 private:
     Ui::MainWindow *ui;
