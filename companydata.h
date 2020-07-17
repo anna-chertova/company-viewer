@@ -21,15 +21,17 @@ public:
 
     explicit CompanyData(QObject *parent = nullptr);
     QAbstractItemModel *getModel();
+    void addDepartment(Department department);
+    int getNumDepartments() const;
+    const Department& getDepartment(int n) const;
 
 public slots:
 
-    void addDepartment(Department department);
     void clear();
 
 private:
 
-    std::list<Department> departments;
+    std::vector<Department> departments;
     QStandardItemModel standardModel;
     QStandardItem *root;
 };

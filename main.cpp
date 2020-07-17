@@ -1,6 +1,6 @@
 #include "mainwindow.h"
-#include "companydata.h"
 #include "companydataloader.h"
+#include "companydatasaver.h"
 
 #include <QApplication>
 
@@ -10,21 +10,22 @@ int main(int argc, char *argv[])
 
     MainWindow w;
     CompanyData companyData;
-    CompanyDataLoader dataLoader;
+    CompanyDataLoader dataLoader(&companyData);
+    CompanyDataSaver dataSaver(&companyData);
 
     QObject::connect(&w, &MainWindow::loadCompanyData,
                      &dataLoader, &CompanyDataLoader::parseFile);
+    QObject::connect(&w, &MainWindow::saveCompanyData,
+                     &dataSaver, &CompanyDataSaver::saveFile);
+    QObject::connect(&w, &MainWindow::clearCompanyData,
+                     &companyData, &CompanyData::clear);
 
     QObject::connect(&dataLoader, &CompanyDataLoader::error,
                      &w, &MainWindow::errorDialog);
-
-    QObject::connect(&dataLoader, &CompanyDataLoader::newDepartment,
-                     &companyData, &CompanyData::addDepartment);
-    QObject::connect(&dataLoader, &CompanyDataLoader::newDepartment,
+    QObject::connect(&dataLoader, &CompanyDataLoader::updateData,
                      &w, &MainWindow::update);
-
-    QObject::connect(&w, &MainWindow::clearCompanyData,
-                     &companyData, &CompanyData::clear);
+    QObject::connect(&dataSaver, &CompanyDataSaver::error,
+                     &w, &MainWindow::errorDialog);
 
     w.setModel(companyData.getModel());
 

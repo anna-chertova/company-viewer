@@ -24,6 +24,16 @@ void CompanyData::clear()
     standardModel.removeRows(0, row_count);
 }
 
+int CompanyData::getNumDepartments() const
+{
+    return departments.size();
+}
+
+const Department& CompanyData::getDepartment(int n) const
+{
+    return departments.at(n);
+}
+
 void CompanyData::addDepartment(Department department)
 {
     departments.push_back(department);

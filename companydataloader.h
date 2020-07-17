@@ -6,10 +6,8 @@
 #ifndef COMPANYDATALOADER_H
 #define COMPANYDATALOADER_H
 
-#include "department.h"
-#include <QFile>
+#include "companydata.h"
 #include <QObject>
-#include <QString>
 #include <QXmlStreamReader>
 
 class CompanyDataLoader : public QObject
@@ -18,21 +16,23 @@ class CompanyDataLoader : public QObject
 
 public:
 
-    explicit CompanyDataLoader(QObject *parent = nullptr);
-
-    void parseFile(const QString &fileName);
+    explicit CompanyDataLoader(CompanyData *data, QObject *parent = nullptr);
     QString errorString() const;
+
+public slots:
+
+    void parseFile(const QString &fileName);    
 
 signals:
 
-    void newDepartment(Department d);
+    void updateData();
     void error(const QString &name, const QString &text);
 
 private:
 
     void parseDepartments();
     Department parseDepartment();
-    std::list<Employee> parseEmployments();
+    std::vector<Employee> parseEmployments();
     Employee parseEmployment();
     QString parseSurname();
     QString parseName();
@@ -43,7 +43,7 @@ private:
 private:
 
     QXmlStreamReader xmlReader;
-
+    CompanyData *companyData;
 };
 
 #endif // COMPANYDATALOADER_H
