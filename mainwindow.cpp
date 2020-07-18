@@ -77,6 +77,16 @@ void MainWindow::update()
     }
 }
 
+void MainWindow::undo()
+{
+
+}
+
+void MainWindow::redo()
+{
+
+}
+
 void MainWindow::errorDialog(const QString &problem, const QString &error)
 {
     QMessageBox::warning(this, problem, error, QMessageBox::Ok);
@@ -85,19 +95,30 @@ void MainWindow::errorDialog(const QString &problem, const QString &error)
 void MainWindow::createActions()
 {
     // Create menu actions
-    menuFile = menuBar()->addMenu(tr("&File"));
+
+    // File menu
+    QMenu *menuFile = menuBar()->addMenu(tr("&File"));
     actionOpen = menuFile->addAction(tr("&Open..."),
-                                              this,
-                                              &MainWindow::open);
+                                     this,
+                                     &MainWindow::open);
     actionOpen->setShortcut(QKeySequence::Open);
 
     actionSaveAs = menuFile->addAction(tr("&Save as..."),
-                                                this,
-                                                &MainWindow::saveAs);
+                                       this,
+                                       &MainWindow::saveAs);
     actionSaveAs->setEnabled(false);
 
-    actionClose = menuFile->addAction(tr("&Close"),
-                                               this,
-                                               &MainWindow::close);
+    actionClose = menuFile->addAction(tr("&Close"), this, &MainWindow::close);
     actionClose->setEnabled(false);
+
+    // Edit menu
+    QMenu *menuEdit = menuBar()->addMenu(tr("&Edit"));
+    actionUndo = menuEdit->addAction(tr("&Undo"), this, &MainWindow::undo);
+    actionUndo->setShortcut(QKeySequence::Undo);
+    actionUndo->setEnabled(false);
+
+    actionRedo = menuEdit->addAction(tr("&Redo"), this, &MainWindow::redo);
+    actionRedo->setShortcut(QKeySequence::Redo);
+    actionRedo->setEnabled(false);
+
 }

@@ -38,6 +38,8 @@ private slots:
     void open();
     void saveAs();
     void close();
+    void undo();
+    void redo();
 
 private:
     void createActions();
@@ -45,10 +47,11 @@ private:
 private:
     Ui::MainWindow *ui;
     QTreeView *treeView;
-    QMenu *menuFile;
     QAction *actionOpen;
     QAction *actionSaveAs;
     QAction *actionClose;
+    QAction *actionUndo;
+    QAction *actionRedo;
 
 };
 #endif // MAINWINDOW_H
