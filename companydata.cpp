@@ -10,6 +10,9 @@ CompanyData::CompanyData(QObject *)
                                              tr("Position"),
                                              tr("Salary")});
     root = standardModel.invisibleRootItem();
+
+    QObject::connect(&standardModel, &QStandardItemModel::itemChanged,
+                     this, &CompanyData::onItemChanged);
 }
 
 QAbstractItemModel *CompanyData::getModel()
@@ -22,6 +25,11 @@ void CompanyData::clear()
     departments.clear();
     int row_count = standardModel.rowCount();
     standardModel.removeRows(0, row_count);
+}
+
+void CompanyData::onItemChanged(QStandardItem *item)
+{
+    //item->
 }
 
 int CompanyData::getNumDepartments() const

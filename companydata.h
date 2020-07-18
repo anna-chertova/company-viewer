@@ -28,6 +28,7 @@ public:
 public slots:
 
     void clear();
+    void onItemChanged(QStandardItem *item);
 
 private:
 
