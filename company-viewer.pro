@@ -18,6 +18,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
     companydata.cpp \
     companydataloader.cpp \
+    companydatamodel.cpp \
     companydatasaver.cpp \
     main.cpp \
     mainwindow.cpp
@@ -25,6 +26,7 @@ SOURCES += \
 HEADERS += \
     companydata.h \
     companydataloader.h \
+    companydatamodel.h \
     companydatasaver.h \
     department.h \
     mainwindow.h
