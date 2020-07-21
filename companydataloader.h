@@ -6,7 +6,7 @@
 #ifndef COMPANYDATALOADER_H
 #define COMPANYDATALOADER_H
 
-#include "companydata.h"
+#include "companydatamodel.h"
 #include <QObject>
 #include <QXmlStreamReader>
 
@@ -16,7 +16,7 @@ class CompanyDataLoader : public QObject
 
 public:
 
-    explicit CompanyDataLoader(CompanyData *data, QObject *parent = nullptr);
+    explicit CompanyDataLoader(CompanyDataModel *dataModel, QObject *parent = nullptr);
     QString errorString() const;
 
 public slots:
@@ -43,7 +43,7 @@ private:
 private:
 
     QXmlStreamReader xmlReader;
-    CompanyData *companyData;
+    CompanyDataModel *companyDataModel;
 };
 
 #endif // COMPANYDATALOADER_H

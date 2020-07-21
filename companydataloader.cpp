@@ -1,8 +1,8 @@
 #include "companydataloader.h"
 #include <QFile>
 
-CompanyDataLoader::CompanyDataLoader(CompanyData *data, QObject *parent)
-    : QObject(parent), companyData(data)
+CompanyDataLoader::CompanyDataLoader(CompanyDataModel *dataModel, QObject *parent)
+    : QObject(parent), companyDataModel(dataModel)
 {
 
 }
@@ -48,7 +48,7 @@ void CompanyDataLoader::parseDepartments()
     while (xmlReader.readNextStartElement()) {
         if (xmlReader.name() == QLatin1String("department"))
         {
-            companyData->addDepartment(parseDepartment());
+            companyDataModel->addDepartment(parseDepartment());
             emit updateData();
         }
         else

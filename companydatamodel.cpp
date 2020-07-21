@@ -41,6 +41,10 @@ QModelIndex CompanyDataModel::parent(const QModelIndex &child) const
 
 int CompanyDataModel::rowCount(const QModelIndex &parent) const
 {
+    Q_ASSERT(checkIndex(parent,
+                        QAbstractItemModel::CheckIndexOption::IndexIsValid |
+                        QAbstractItemModel::CheckIndexOption::DoNotUseParent));
+
     if (!parent.isValid()) {
         return departments.size();
     }
@@ -52,15 +56,24 @@ int CompanyDataModel::rowCount(const QModelIndex &parent) const
 
 int CompanyDataModel::columnCount(const QModelIndex &parent) const
 {
-    Q_UNUSED(parent)
+    Q_ASSERT(checkIndex(parent,
+                        QAbstractItemModel::CheckIndexOption::IndexIsValid |
+                        QAbstractItemModel::CheckIndexOption::DoNotUseParent));
+
     return ColumnCount;
 }
 
 QVariant CompanyDataModel::data(const QModelIndex &index, int role) const
 {
-    Q_UNUSED(role)
+    Q_ASSERT(checkIndex(index,
+                        QAbstractItemModel::CheckIndexOption::IndexIsValid |
+                        QAbstractItemModel::CheckIndexOption::DoNotUseParent));
 
     if (!index.isValid()) {
+        return QVariant();
+    }
+
+    if (role != Qt::DisplayRole) {
         return QVariant();
     }
 
@@ -84,6 +97,10 @@ QVariant CompanyDataModel::data(const QModelIndex &index, int role) const
 
 bool CompanyDataModel::setData(const QModelIndex &index, const QVariant &value, int role)
 {
+    Q_ASSERT(checkIndex(index,
+                        QAbstractItemModel::CheckIndexOption::IndexIsValid |
+                        QAbstractItemModel::CheckIndexOption::DoNotUseParent));
+
     if (!index.isValid()) {
         return false;
     }
@@ -133,4 +150,9 @@ Qt::ItemFlags CompanyDataModel::flags(const QModelIndex &index) const
         flags |= Qt::ItemIsEditable;
     }
     return flags;
+}
+
+void CompanyDataModel::addDepartment(Department department)
+{
+    departments.push_back(department);
 }

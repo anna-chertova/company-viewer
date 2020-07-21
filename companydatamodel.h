@@ -22,6 +22,8 @@ public:
     virtual QVariant headerData(int section, Qt::Orientation orientation, int role) const;
     virtual Qt::ItemFlags flags(const QModelIndex &index) const;
 
+    void addDepartment(Department department);
+
 signals:
 
 private:
