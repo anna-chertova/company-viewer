@@ -23,8 +23,13 @@ public:
     virtual Qt::ItemFlags flags(const QModelIndex &index) const;
 
     void addDepartment(Department department);
+    int getNumDepartments() const;
+    const Department& getDepartment(int n) const;
 
 signals:
+
+public slots:
+    void clear();
 
 private:
 

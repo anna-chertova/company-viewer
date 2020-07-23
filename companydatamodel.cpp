@@ -12,14 +12,16 @@ QModelIndex CompanyDataModel::index(int row, int column, const QModelIndex &pare
     }
 
     // one of root indices is requested
-    if (!parent.isValid()) {
+    //if (!parent.isValid()) {
         Q_ASSERT(static_cast<int>(departments.size()) > row);
         return createIndex(row, column, const_cast<Department*>(&departments[row]));
-    }
-    Department *department = static_cast<Department*>(parent.internalPointer());
+    //}
+    /*Department *department = static_cast<Department*>(parent.internalPointer());
     Q_ASSERT(department != NULL);
     Q_ASSERT(static_cast<int>(department->employees.size()) > row);
-    return createIndex(row, column, &department->employees[row]);
+    return createIndex(row, column, &department->employees[row]);*/
+
+    //return createIndex(row, column, static_cast<quintptr>(0));
 }
 
 QModelIndex CompanyDataModel::parent(const QModelIndex &child) const
@@ -27,7 +29,7 @@ QModelIndex CompanyDataModel::parent(const QModelIndex &child) const
     if (!child.isValid()) {
         return QModelIndex();
     }
-
+    /*
     Employee* employee = static_cast<Employee*>(child.internalPointer());
     if (employee) { // if we request employee's parent (department)
         //int department_row = std::distance(departments.begin(), std::find(departments.begin(),departments.end(), *employee->department));
@@ -36,29 +38,31 @@ QModelIndex CompanyDataModel::parent(const QModelIndex &child) const
         return createIndex(employee_row, RamificationColumn, employee->department);
     }
     // departments have no parents
+    */
     return QModelIndex();
 }
 
 int CompanyDataModel::rowCount(const QModelIndex &parent) const
 {
-    Q_ASSERT(checkIndex(parent,
+    /*Q_ASSERT(checkIndex(parent,
                         QAbstractItemModel::CheckIndexOption::IndexIsValid |
-                        QAbstractItemModel::CheckIndexOption::DoNotUseParent));
+                        QAbstractItemModel::CheckIndexOption::DoNotUseParent));*/
 
     if (!parent.isValid()) {
         return departments.size();
     }
-    const Department *department = static_cast<const Department*>(parent.internalPointer());
+    /*const Department *department = static_cast<const Department*>(parent.internalPointer());
     Q_ASSERT(department != 0);
 
-    return department->employees.size();
+    return department->employees.size();*/
+    return 0;
 }
 
 int CompanyDataModel::columnCount(const QModelIndex &parent) const
 {
-    Q_ASSERT(checkIndex(parent,
+    /*Q_ASSERT(checkIndex(parent,
                         QAbstractItemModel::CheckIndexOption::IndexIsValid |
-                        QAbstractItemModel::CheckIndexOption::DoNotUseParent));
+                        QAbstractItemModel::CheckIndexOption::DoNotUseParent));*/
 
     return ColumnCount;
 }
@@ -77,7 +81,7 @@ QVariant CompanyDataModel::data(const QModelIndex &index, int role) const
         return QVariant();
     }
 
-    /// TODO: add logic to display employees (child items)
+    /// TODO: add logic to display employees (child items)    
 
     const Department *department = static_cast<Department*>(index.internalPointer());
     Q_ASSERT(department != 0);
@@ -141,12 +145,7 @@ QVariant CompanyDataModel::headerData(int section, Qt::Orientation orientation, 
 Qt::ItemFlags CompanyDataModel::flags(const QModelIndex &index) const
 {
     Qt::ItemFlags flags = QAbstractItemModel::flags(index);
-    if (index.isValid() && (index.column() == DepartmentName ||
-                            index.column() == EmployeeSurname ||
-                            index.column() == EmployeeName ||
-                            index.column() == EmployeeMidlleName ||
-                            index.column() == EmployeePosition ||
-                            index.column() == EmployeeSalary)) {
+    if (index.isValid() && (index.column() == DepartmentName)) {
         flags |= Qt::ItemIsEditable;
     }
     return flags;
@@ -155,4 +154,20 @@ Qt::ItemFlags CompanyDataModel::flags(const QModelIndex &index) const
 void CompanyDataModel::addDepartment(Department department)
 {
     departments.push_back(department);
+}
+
+int CompanyDataModel::getNumDepartments() const
+{
+    return departments.size();
+}
+
+const Department& CompanyDataModel::getDepartment(int n) const
+{
+    return departments.at(n);
+}
+
+void CompanyDataModel::clear()
+{
+    removeRows(0, departments.size());
+    departments.clear();
 }

@@ -6,7 +6,7 @@
 #ifndef COMPANYDATASAVER_H
 #define COMPANYDATASAVER_H
 
-#include "companydata.h"
+#include "companydatamodel.h"
 
 #include <QObject>
 #include <QXmlStreamWriter>
@@ -15,7 +15,7 @@ class CompanyDataSaver : public QObject
 {
     Q_OBJECT
 public:
-    explicit CompanyDataSaver(CompanyData *data, QObject *parent = nullptr);
+    explicit CompanyDataSaver(CompanyDataModel *data, QObject *parent = nullptr);
 
 public slots:
 
@@ -28,7 +28,7 @@ signals:
 private:
 
     QXmlStreamWriter xmlWriter;
-    CompanyData *companyData;
+    CompanyDataModel *companyData;
 };
 
 #endif // COMPANYDATASAVER_H

@@ -1,7 +1,7 @@
 #include "companydatasaver.h"
 #include <QFile>
 
-CompanyDataSaver::CompanyDataSaver(CompanyData *data, QObject *parent)
+CompanyDataSaver::CompanyDataSaver(CompanyDataModel *data, QObject *parent)
     : QObject(parent), companyData(data)
 {
 
