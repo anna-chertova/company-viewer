@@ -12,7 +12,7 @@ DataItem::~DataItem()
 
 DataItem *DataItem::child(int number)
 {
-    if (number < 0 || static_cast<size_t>(number) >= childItems.size())
+    if (number < 0 || number >= static_cast<int>(childItems.size()))
         return nullptr;
     return childItems.at(number);
 }
@@ -29,14 +29,14 @@ int DataItem::columnCount() const
 
 QVariant DataItem::data(int column) const
 {
-    if (column < 0 || static_cast<size_t>(column) >= valueItems.size())
+    if (column < 0 || column >= static_cast<int>(valueItems.size()))
         return QVariant();
     return valueItems.at(column);
 }
 
 bool DataItem::insertChildren(int position, int count, int columns)
 {
-    if (position < 0 || static_cast<size_t>(position) > childItems.size())
+    if (position < 0 || position > static_cast<int>(childItems.size()))
         return false;
 
     for (int row = 0; row < count; ++row) {
@@ -70,7 +70,7 @@ DataItem *DataItem::parent()
 
 bool DataItem::removeChildren(int position, int count)
 {
-    if (position < 0 || static_cast<size_t>(position + count) > childItems.size())
+    if (position < 0 || position + count > static_cast<int>(childItems.size()))
         return false;
 
     for (int row = 0; row < count; ++row) {
@@ -92,7 +92,7 @@ int DataItem::childNumber() const
 
 bool DataItem::setData(int column, const QVariant &value)
 {
-    if (column < 0 || static_cast<size_t>(column) >= valueItems.size())
+    if (column < 0 || column >= static_cast<int>(valueItems.size()))
         return false;
 
     valueItems[column] = value;
