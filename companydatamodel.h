@@ -2,6 +2,7 @@
 #define COMPANYDATAMODEL_H
 
 #include "department.h"
+#include "dataitem.h"
 #include <QAbstractItemModel>
 
 class CompanyDataModel : public QAbstractItemModel
@@ -9,6 +10,7 @@ class CompanyDataModel : public QAbstractItemModel
     Q_OBJECT
 public:
     explicit CompanyDataModel(QObject *parent = nullptr);
+    ~CompanyDataModel();
 
     virtual QModelIndex index(int row, int column, const QModelIndex &parent) const;
     virtual QModelIndex parent(const QModelIndex &child) const;
@@ -24,7 +26,7 @@ public:
 
     void addDepartment(Department department);
     int getNumDepartments() const;
-    const Department& getDepartment(int n) const;
+    Department getDepartment(int n) const;
 
 signals:
 
@@ -46,7 +48,8 @@ private:
         ColumnCount
     };
 
-    std::vector<Department> departments;
+    //std::vector<Department> departments;
+    std::vector<DataItem*> departmentItems;
 
 };
 

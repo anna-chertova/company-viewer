@@ -14,6 +14,7 @@ struct Department;
 
 struct Employee {
 
+    /// TODO: remove pointer to department here
     Department *department;
     QString surname;
     QString name;
