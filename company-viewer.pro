@@ -19,6 +19,7 @@ SOURCES += \
     companydataloader.cpp \
     companydatamodel.cpp \
     companydatasaver.cpp \
+    dataitem.cpp \
     main.cpp \
     mainwindow.cpp
 
@@ -26,6 +27,7 @@ HEADERS += \
     companydataloader.h \
     companydatamodel.h \
     companydatasaver.h \
+    dataitem.h \
     department.h \
     mainwindow.h
 
