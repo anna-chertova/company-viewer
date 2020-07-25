@@ -42,7 +42,7 @@ private:
         DepartmentNumEmployees,
         EmployeeSurname,
         EmployeeName,
-        EmployeeMidlleName,
+        EmployeeMiddleName,
         EmployeePosition,
         EmployeeSalary,
         ColumnCount
