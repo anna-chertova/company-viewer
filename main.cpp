@@ -24,7 +24,7 @@ int main(int argc, char *argv[])
     QObject::connect(&dataLoader, &CompanyDataLoader::error,
                      &w, &MainWindow::errorDialog);
     QObject::connect(&dataLoader, &CompanyDataLoader::updateData,
-                     &w, &MainWindow::update);
+                     &w, &MainWindow::updateView);
     QObject::connect(&dataSaver, &CompanyDataSaver::error,
                      &w, &MainWindow::errorDialog);
 

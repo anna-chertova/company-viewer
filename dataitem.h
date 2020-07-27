@@ -16,7 +16,6 @@ public:
     int columnCount() const;
     QVariant data(int column) const;
     bool insertChildren(int position, int count, int columns);
-    //bool insertColumns(int position, int columns);
     DataItem *parent();
     bool removeChildren(int position, int count);
     int childNumber() const;

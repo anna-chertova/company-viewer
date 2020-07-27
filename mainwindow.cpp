@@ -24,7 +24,10 @@ MainWindow::~MainWindow()
 void MainWindow::setModel(QAbstractItemModel *model)
 {
     treeView->setModel(model);
-    update();
+    connect(treeView->selectionModel(), &QItemSelectionModel::selectionChanged,
+                this, &MainWindow::updateActions);
+    updateView();
+    updateActions();
 }
 
 void MainWindow::open()
@@ -44,6 +47,11 @@ void MainWindow::open()
     setWindowTitle("Company Viewer - " + fileName);
     actionSaveAs->setEnabled(true);
     actionClose->setEnabled(true);
+    actionAddDepartment->setEnabled(true);
+    actionRemoveDepartment->setEnabled(true);
+    actionAddEmployee->setEnabled(true);
+    actionRemoveEmployee->setEnabled(true);
+    menuEdit->setEnabled(true);
 }
 
 void MainWindow::saveAs()
@@ -65,16 +73,63 @@ void MainWindow::close()
     setWindowTitle("Company Viewer");
     actionSaveAs->setEnabled(false);
     actionClose->setEnabled(false);
+    actionAddDepartment->setEnabled(false);
+    actionRemoveDepartment->setEnabled(false);
+    actionAddEmployee->setEnabled(false);
+    actionRemoveEmployee->setEnabled(false);
+    menuEdit->setEnabled(false);
     emit clearCompanyData();
 }
 
-void MainWindow::update()
+void MainWindow::updateView()
 {
     treeView->expandAll();
     int row_count = treeView->model()->rowCount();
     for(int i = 0; i < row_count; ++i) {
         treeView->resizeColumnToContents(i);
     }
+}
+
+void MainWindow::updateActions()
+{
+    const bool hasCurrent = treeView->selectionModel()->currentIndex().isValid();
+
+    if (hasCurrent) {
+        treeView->closePersistentEditor(treeView->selectionModel()->currentIndex());
+
+        const int row = treeView->selectionModel()->currentIndex().row();
+        const int column = treeView->selectionModel()->currentIndex().column();
+        if (treeView->selectionModel()->currentIndex().parent().isValid()) {
+            statusBar()->showMessage(tr("Position: (%1,%2)").arg(row).arg(column));
+            actionRemoveEmployee->setEnabled(true);
+            actionRemoveDepartment->setEnabled(false);
+        }
+        else {
+            statusBar()->showMessage(tr("Position: (%1,%2) in top level").arg(row).arg(column));
+            actionRemoveDepartment->setEnabled(true);
+            actionRemoveEmployee->setEnabled(false);
+        }
+    }
+}
+
+void MainWindow::addDepartment()
+{
+
+}
+
+void MainWindow::removeDepartment()
+{
+
+}
+
+void MainWindow::addEmployee()
+{
+
+}
+
+void MainWindow::removeEmployee()
+{
+
 }
 
 void MainWindow::undo()
@@ -112,7 +167,18 @@ void MainWindow::createActions()
     actionClose->setEnabled(false);
 
     // Edit menu
-    QMenu *menuEdit = menuBar()->addMenu(tr("&Edit"));
+    menuEdit = menuBar()->addMenu(tr("&Edit"));
+    menuEdit->setEnabled(false);
+
+    actionAddDepartment = menuEdit->addAction(tr("Add department"), this, &MainWindow::addDepartment);
+    actionAddDepartment->setEnabled(true);
+    actionRemoveDepartment = menuEdit->addAction(tr("Remove department"), this, &MainWindow::removeDepartment);
+    actionRemoveDepartment->setEnabled(false);
+    actionAddEmployee = menuEdit->addAction(tr("Add employee"), this, &MainWindow::addEmployee);
+    actionAddEmployee->setEnabled(true);
+    actionRemoveEmployee = menuEdit->addAction(tr("Remove employee"), this, &MainWindow::removeEmployee);
+    actionRemoveEmployee->setEnabled(false);
+
     actionUndo = menuEdit->addAction(tr("&Undo"), this, &MainWindow::undo);
     actionUndo->setShortcut(QKeySequence::Undo);
     actionUndo->setEnabled(false);
@@ -121,4 +187,5 @@ void MainWindow::createActions()
     actionRedo->setShortcut(QKeySequence::Redo);
     actionRedo->setEnabled(false);
 
+    connect(menuEdit, &QMenu::aboutToShow, this, &MainWindow::updateActions);
 }

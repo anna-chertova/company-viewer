@@ -99,8 +99,10 @@ bool CompanyDataModel::setData(const QModelIndex &index, const QVariant &value, 
     Q_ASSERT(item != nullptr);
     Q_ASSERT(flags(index) && Qt::ItemIsEditable);
 
-    item->setData(index.column(), value);
-    return true;
+    bool success = item->setData(index.column(), value);
+    if(success)
+        emit dataChanged(index, index, {Qt::DisplayRole, Qt::EditRole});
+    return success;
 }
 
 QVariant CompanyDataModel::headerData(int section, Qt::Orientation orientation, int role) const
@@ -201,8 +203,49 @@ Department CompanyDataModel::getDepartment(int n) const
 
 void CompanyDataModel::clear()
 {
-    /// TODO: check here to avoid memory leaks!
     removeRows(0, departmentItems.size());
-    //qDeleteAll(departmentItems);
-    departmentItems.clear();
+}
+
+bool CompanyDataModel::insertRows(int position, int rows, const QModelIndex &parent)
+{
+    if(!parent.isValid())
+        return false;
+
+    DataItem *parentItem = static_cast<DataItem*>(parent.internalPointer());
+    if (!parentItem)
+       return false;
+
+    beginInsertRows(parent, position, position + rows - 1);
+    const bool success = parentItem->insertChildren(position,
+                                                    rows,
+                                                    ColumnCount);
+    endInsertRows();
+    return success;
+}
+
+bool CompanyDataModel::removeRows(int position, int rows, const QModelIndex &parent)
+{
+    if(rows == 0) { // nothing to remove
+        return false;
+    }
+
+    if(!parent.isValid()) {
+        beginRemoveRows(QModelIndex(), position, position + rows - 1);
+        for(int i = 0; i < rows; ++i) {
+            delete departmentItems.at(position + i);
+        }
+        departmentItems.erase(departmentItems.begin() + position, departmentItems.begin() + position + rows);
+        endRemoveRows();
+        return true;
+    }
+
+    DataItem *parentItem = static_cast<DataItem*>(parent.internalPointer());
+    if (!parentItem) {
+        return false;
+    }
+    beginRemoveRows(parent, position, position + rows - 1);
+    const bool success = parentItem->removeChildren(position, rows);
+    endRemoveRows();
+
+    return success;
 }

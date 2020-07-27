@@ -8,6 +8,7 @@ DataItem::DataItem(const std::vector<QVariant>& v, DataItem* p): parentItem(p), 
 DataItem::~DataItem()
 {
     qDeleteAll(childItems);
+    childItems.clear();
 }
 
 DataItem *DataItem::child(int number)
@@ -48,21 +49,6 @@ bool DataItem::insertChildren(int position, int count, int columns)
     return true;
 }
 
-/*
-bool DataItem::insertColumns(int position, int columns)
-{
-    if (position < 0 || static_cast<size_t>(position) > valueItems.size())
-        return false;
-
-    for (int column = 0; column < columns; ++column)
-        valueItems.insert(valueItems.begin() + position, QVariant());
-
-    for (DataItem *child : childItems)
-        child->insertColumns(position, columns);
-
-    return true;
-}*/
-
 DataItem *DataItem::parent()
 {
     return parentItem;
@@ -73,11 +59,10 @@ bool DataItem::removeChildren(int position, int count)
     if (position < 0 || position + count > static_cast<int>(childItems.size()))
         return false;
 
-    for (int row = 0; row < count; ++row) {
-        DataItem *item = childItems.at(position);
-        delete item;
-        childItems.erase(childItems.begin() + position);
+    for (int offset = 0; offset < count; ++offset) {
+        delete childItems.at(position + offset);
     }
+    childItems.erase(childItems.begin() + position, childItems.begin() + position + count);
     return true;
 }
 
