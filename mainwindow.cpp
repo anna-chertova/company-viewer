@@ -1,3 +1,4 @@
+#include <QContextMenuEvent>
 #include <QFileDialog>
 #include <QHeaderView>
 #include <QMessageBox>
@@ -30,6 +31,18 @@ void MainWindow::setModel(QAbstractItemModel *model)
     updateActions();
 }
 
+#ifndef QT_NO_CONTEXTMENU
+void MainWindow::contextMenuEvent(QContextMenuEvent *event)
+{
+    QMenu menu(this);
+    menu.addAction(actionAddDepartment);
+    menu.addAction(actionRemoveDepartment);
+    menu.addAction(actionAddEmployee);
+    menu.addAction(actionRemoveEmployee);
+    menu.exec(event->globalPos());
+}
+#endif // QT_NO_CONTEXTMENU
+
 void MainWindow::open()
 {
     close();
@@ -39,7 +52,8 @@ void MainWindow::open()
     QString fileName = QFileDialog::getOpenFileName(
                 this,
                 tr("Open File"),
-                filesLocations.isEmpty() ? QDir::currentPath() : filesLocations.last(),
+                filesLocations.isEmpty() ?
+                    QDir::currentPath() : filesLocations.last(),
                 tr("XML files (*.xml)"));
     if(fileName.isNull()) return;
     /// TODO: think about behavior when error occurred while opening file
@@ -92,20 +106,24 @@ void MainWindow::updateView()
 
 void MainWindow::updateActions()
 {
-    const bool hasCurrent = treeView->selectionModel()->currentIndex().isValid();
+    const bool hasCurrent =
+            treeView->selectionModel()->currentIndex().isValid();
 
     if (hasCurrent) {
-        treeView->closePersistentEditor(treeView->selectionModel()->currentIndex());
+        treeView->closePersistentEditor(
+                    treeView->selectionModel()->currentIndex());
 
         const int row = treeView->selectionModel()->currentIndex().row();
         const int column = treeView->selectionModel()->currentIndex().column();
         if (treeView->selectionModel()->currentIndex().parent().isValid()) {
-            statusBar()->showMessage(tr("Position: (%1,%2)").arg(row).arg(column));
+            statusBar()->showMessage(
+                        tr("Position: (%1,%2)").arg(row).arg(column));
             actionRemoveEmployee->setEnabled(true);
             actionRemoveDepartment->setEnabled(false);
         }
         else {
-            statusBar()->showMessage(tr("Position: (%1,%2) in top level").arg(row).arg(column));
+            statusBar()->showMessage(
+                        tr("Position: (%1,%2) in top level").arg(row).arg(column));
             actionRemoveDepartment->setEnabled(true);
             actionRemoveEmployee->setEnabled(false);
         }
@@ -142,6 +160,14 @@ void MainWindow::redo()
 
 }
 
+void MainWindow::about()
+{
+    QMessageBox::about(this, tr("About Menu"),
+                       tr("Company viewer - program for viewing and editing company files\n"
+                          "(xml files containing list of company departments & employees)\n"
+                          "\n(c) Anna Chertova 2020"));
+}
+
 void MainWindow::errorDialog(const QString &problem, const QString &error)
 {
     QMessageBox::warning(this, problem, error, QMessageBox::Ok);
@@ -161,24 +187,40 @@ void MainWindow::createActions()
     actionSaveAs = menuFile->addAction(tr("&Save as..."),
                                        this,
                                        &MainWindow::saveAs);
+    actionSaveAs->setShortcut(QKeySequence::SaveAs);
     actionSaveAs->setEnabled(false);
 
     actionClose = menuFile->addAction(tr("&Close"), this, &MainWindow::close);
+    actionClose->setShortcut(QKeySequence::Close);
     actionClose->setEnabled(false);
 
-    // Edit menu
+    // Edit menu (Add/remove department/employee)
     menuEdit = menuBar()->addMenu(tr("&Edit"));
     menuEdit->setEnabled(false);
 
-    actionAddDepartment = menuEdit->addAction(tr("Add department"), this, &MainWindow::addDepartment);
-    actionAddDepartment->setEnabled(true);
-    actionRemoveDepartment = menuEdit->addAction(tr("Remove department"), this, &MainWindow::removeDepartment);
+    actionAddDepartment = menuEdit->addAction(
+                tr("Add department"),
+                this,
+                &MainWindow::addDepartment);
+    actionAddDepartment->setEnabled(false);
+    actionRemoveDepartment = menuEdit->addAction(
+                tr("Remove department"),
+                this,
+                &MainWindow::removeDepartment);
     actionRemoveDepartment->setEnabled(false);
-    actionAddEmployee = menuEdit->addAction(tr("Add employee"), this, &MainWindow::addEmployee);
-    actionAddEmployee->setEnabled(true);
-    actionRemoveEmployee = menuEdit->addAction(tr("Remove employee"), this, &MainWindow::removeEmployee);
+    actionAddEmployee = menuEdit->addAction(
+                tr("Add employee"),
+                this,
+                &MainWindow::addEmployee);
+    actionAddEmployee->setEnabled(false);
+    actionRemoveEmployee = menuEdit->addAction(
+                tr("Remove employee"),
+                this,
+                &MainWindow::removeEmployee);
     actionRemoveEmployee->setEnabled(false);
 
+    // Edit menu (Undo/redo)
+    menuEdit->addSeparator();
     actionUndo = menuEdit->addAction(tr("&Undo"), this, &MainWindow::undo);
     actionUndo->setShortcut(QKeySequence::Undo);
     actionUndo->setEnabled(false);
@@ -186,6 +228,10 @@ void MainWindow::createActions()
     actionRedo = menuEdit->addAction(tr("&Redo"), this, &MainWindow::redo);
     actionRedo->setShortcut(QKeySequence::Redo);
     actionRedo->setEnabled(false);
+
+    // Help menu
+    QMenu *menuHelp = menuBar()->addMenu(tr("&Help"));
+    menuHelp->addAction(tr("&About"), this, &MainWindow::about);
 
     connect(menuEdit, &QMenu::aboutToShow, this, &MainWindow::updateActions);
 }

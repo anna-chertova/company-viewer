@@ -20,31 +20,45 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
+
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
     void setModel(QAbstractItemModel *model);
 
+protected:
+
+#ifndef QT_NO_CONTEXTMENU
+    void contextMenuEvent(QContextMenuEvent *event) override;
+#endif // QT_NO_CONTEXTMENU
+
 signals:
+
     void loadCompanyData(const QString &fileName);
     void saveCompanyData(const QString &fileName);
     void clearCompanyData();
 
 public slots:
+
     void updateView();
     void errorDialog(const QString &problem, const QString &error);
     void updateActions();
 
 private slots:
+
     void open();
     void saveAs();
     void close();
+
     void addDepartment();
     void removeDepartment();
     void addEmployee();
     void removeEmployee();
+
     void undo();
     void redo();
+
+    void about();
 
 private:
     void createActions();
