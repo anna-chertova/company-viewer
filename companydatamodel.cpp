@@ -233,11 +233,23 @@ bool CompanyDataModel::removeRows(int position, int rows, const QModelIndex &par
     }
 
     if(!parent.isValid()) {
+
+        // remove all employees inside removed departments
+        for(int i = 0; i < rows; ++i) {
+            DataItem *departmentItem = departmentItems.at(position + i);
+            beginRemoveRows(parent, 0, rows - 1);
+            departmentItem->removeChildren(0, rows);
+            endRemoveRows();
+        }
+
+        // remove department
         beginRemoveRows(QModelIndex(), position, position + rows - 1);
         for(int i = 0; i < rows; ++i) {
             delete departmentItems.at(position + i);
         }
-        departmentItems.erase(departmentItems.begin() + position, departmentItems.begin() + position + rows);
+        departmentItems.erase(
+                    departmentItems.begin() + position,
+                    departmentItems.begin() + position + rows);
         endRemoveRows();
         return true;
     }

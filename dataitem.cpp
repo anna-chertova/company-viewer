@@ -56,13 +56,15 @@ DataItem *DataItem::parent()
 
 bool DataItem::removeChildren(int position, int count)
 {
-    if (position < 0 || position + count > static_cast<int>(childItems.size()))
+    if (position < 0 || (position + count) > static_cast<int>(childItems.size()))
         return false;
 
     for (int offset = 0; offset < count; ++offset) {
         delete childItems.at(position + offset);
     }
-    childItems.erase(childItems.begin() + position, childItems.begin() + position + count);
+    childItems.erase(
+                childItems.begin() + position,
+                childItems.begin() + position + count);
     return true;
 }
 

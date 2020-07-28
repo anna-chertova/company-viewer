@@ -146,7 +146,11 @@ void MainWindow::addDepartment()
 
 void MainWindow::removeDepartment()
 {
-
+    const QModelIndex index = treeView->selectionModel()->currentIndex();
+    QAbstractItemModel *model = treeView->model();
+    if (!model->removeRow(index.row(), index.parent()))
+        return;
+    updateActions();
 }
 
 void MainWindow::addEmployee()
