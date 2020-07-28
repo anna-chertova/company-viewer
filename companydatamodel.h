@@ -37,6 +37,9 @@ public slots:
     void clear();
 
 private:
+    DataItem *createEmptyDepartment();
+
+private:
 
     enum Columns
     {
@@ -51,7 +54,6 @@ private:
         ColumnCount
     };
 
-    //std::vector<Department> departments;
     std::vector<DataItem*> departmentItems;
 
 };

@@ -132,7 +132,16 @@ void MainWindow::updateActions()
 
 void MainWindow::addDepartment()
 {
+    const QModelIndex index = treeView->selectionModel()->currentIndex();
+    QAbstractItemModel *model = treeView->model();
 
+    if (!model->insertRow(index.row() + 1, index.parent()))
+        return;
+
+    updateActions();
+
+    const QModelIndex child = model->index(index.row() + 1, 0, index.parent());
+    model->setData(child, QVariant(tr("[Enter name]")), Qt::EditRole);
 }
 
 void MainWindow::removeDepartment()

@@ -128,12 +128,12 @@ Qt::ItemFlags CompanyDataModel::flags(const QModelIndex &index) const
     Q_ASSERT(item != nullptr);
 
     if (index.isValid()) {
-        if ((item->childCount() > 0 && index.column() == DepartmentName) ||
-            (item->childCount() == 0 && (index.column() == EmployeeSurname ||
-                                        index.column() == EmployeeName ||
-                                        index.column() == EmployeeMiddleName ||
-                                        index.column() == EmployeePosition ||
-                                        index.column() == EmployeeSalary))) {
+        if ((!item->parent() && index.column() == DepartmentName) ||
+            (item->parent() && (index.column() == EmployeeSurname ||
+                                index.column() == EmployeeName ||
+                                index.column() == EmployeeMiddleName ||
+                                index.column() == EmployeePosition ||
+                                index.column() == EmployeeSalary))) {
             flags |= Qt::ItemIsEditable;
         }
     }
@@ -143,15 +143,10 @@ Qt::ItemFlags CompanyDataModel::flags(const QModelIndex &index) const
 
 void CompanyDataModel::addDepartment(Department department)
 {
-    std::vector<QVariant> departmentValues;
-    departmentValues.push_back(department.name);
-    departmentValues.push_back(department.getNumEmployees());
-    departmentValues.push_back("");
-    departmentValues.push_back("");
-    departmentValues.push_back("");
-    departmentValues.push_back("");
-    departmentValues.push_back(department.getAvgSalary());
-    DataItem *departmentItem = new DataItem(departmentValues);
+    DataItem *departmentItem = createEmptyDepartment();
+    departmentItem->setData(DepartmentName, department.name);
+    departmentItem->setData(DepartmentNumEmployees, department.getNumEmployees());
+    departmentItem->setData(EmployeeSalary, department.getAvgSalary());
 
     for(int i = 0; i < static_cast<int>(department.employees.size()); ++i) {
         Employee employee = department.employees[i];
@@ -201,15 +196,23 @@ Department CompanyDataModel::getDepartment(int n) const
     return department;
 }
 
-void CompanyDataModel::clear()
-{
-    removeRows(0, departmentItems.size());
-}
-
 bool CompanyDataModel::insertRows(int position, int rows, const QModelIndex &parent)
 {
     if(!parent.isValid())
-        return false;
+    {
+        // add department row
+        std::vector<DataItem*> newDepartments;
+        for(int i = 0; i < rows; ++i) {
+            newDepartments.push_back(createEmptyDepartment());
+        }
+        beginInsertRows(parent, position, position + rows - 1);
+        departmentItems.insert(
+                    departmentItems.begin() + position,
+                    newDepartments.begin(),
+                    newDepartments.end());
+        endInsertRows();
+        return true;
+    }
 
     DataItem *parentItem = static_cast<DataItem*>(parent.internalPointer());
     if (!parentItem)
@@ -248,4 +251,23 @@ bool CompanyDataModel::removeRows(int position, int rows, const QModelIndex &par
     endRemoveRows();
 
     return success;
+}
+
+void CompanyDataModel::clear()
+{
+    removeRows(0, departmentItems.size());
+}
+
+DataItem *CompanyDataModel::createEmptyDepartment()
+{
+    std::vector<QVariant> departmentValues;
+    departmentValues.push_back("");
+    departmentValues.push_back(0);
+    departmentValues.push_back("");
+    departmentValues.push_back("");
+    departmentValues.push_back("");
+    departmentValues.push_back("");
+    departmentValues.push_back(0);
+    DataItem *departmentItem = new DataItem(departmentValues);
+    return departmentItem;
 }

@@ -45,6 +45,8 @@ struct Department {
     }
 
     int getAvgSalary() const {
+        if (employees.empty())
+            return 0;
         int sum = 0;
         for (auto e : employees) {
             sum += e.salary;
