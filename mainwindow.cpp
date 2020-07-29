@@ -34,7 +34,7 @@ void MainWindow::setModel(QAbstractItemModel *model)
 #ifndef QT_NO_CONTEXTMENU
 void MainWindow::contextMenuEvent(QContextMenuEvent *event)
 {
-    QModelIndex curIndex = treeView->indexAt(event->pos());
+    const QModelIndex curIndex = treeView->currentIndex();
     if(!curIndex.isValid())
         return;
 
@@ -140,12 +140,20 @@ void MainWindow::addDepartment()
     const QModelIndex index = treeView->selectionModel()->currentIndex();
     QAbstractItemModel *model = treeView->model();
 
-    if (!model->insertRow(index.row() + 1, index.parent()))
+    QModelIndex parentIndex = index.parent();
+
+    // if employee row is selected
+    // then take its parent's parent as a parent for the new department
+    if(index.parent().isValid()) {
+        parentIndex = parentIndex.parent();
+    }
+
+    if (!model->insertRow(index.row() + 1, parentIndex))
         return;
 
     updateActions();
 
-    const QModelIndex child = model->index(index.row() + 1, 0, index.parent());
+    const QModelIndex child = model->index(index.row() + 1, 0, parentIndex);
     model->setData(child, QVariant(tr("[Enter name]")), Qt::EditRole);
 
     updateView();
@@ -172,7 +180,7 @@ void MainWindow::addEmployee()
     // if employee row is selected,
     // then take its parent as a parent for the new employee
     // otherwise currently selected department will be the parent
-    if(index.parent().isValid()){
+    if(index.parent().isValid()) {
        parentIndex = index.parent();
        childRow = index.row() + 1;
     }
