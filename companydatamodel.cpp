@@ -99,11 +99,14 @@ bool CompanyDataModel::setData(const QModelIndex &index, const QVariant &value, 
     Q_ASSERT(item != nullptr);
     Q_ASSERT(flags(index) && Qt::ItemIsEditable);
 
-    bool success = item->setData(index.column(), value);
+    bool success = item->setData(index.column(), value);    
+
+    // if employee salary has changed then recalculate avg salary for current department
+    if(item->parent() && index.column() == EmployeeSalary)
+        updateDepartmentData(item->parent());
+
     if(success)
         emit dataChanged(index, index, {Qt::DisplayRole, Qt::EditRole});
-
-    /// TODO: if EmployeeSalary has changed recalculate Avg salary for current department
 
     return success;
 }
@@ -148,8 +151,8 @@ void CompanyDataModel::addDepartment(Department department)
 {
     DataItem *departmentItem = createEmptyDepartment();
     departmentItem->setData(DepartmentName, department.name);
-    departmentItem->setData(DepartmentNumEmployees, department.getNumEmployees());
-    departmentItem->setData(EmployeeSalary, department.getAvgSalary());
+    //departmentItem->setData(DepartmentNumEmployees, department.getNumEmployees());
+    //departmentItem->setData(EmployeeSalary, department.getAvgSalary());
 
     for(int i = 0; i < static_cast<int>(department.employees.size()); ++i) {
         Employee employee = department.employees[i];
@@ -169,6 +172,8 @@ void CompanyDataModel::addDepartment(Department department)
     }
 
     departmentItems.push_back(departmentItem);
+
+    updateDepartmentData(departmentItem);
 }
 
 int CompanyDataModel::getNumDepartments() const
@@ -227,7 +232,7 @@ bool CompanyDataModel::insertRows(int position, int rows, const QModelIndex &par
                                                     ColumnCount);
     endInsertRows();
 
-    /// TODO: recalculate DepartmentNumEmployees value & Avg salary for current department
+    updateDepartmentData(parentItem);
     return success;
 }
 
@@ -237,7 +242,7 @@ bool CompanyDataModel::removeRows(int position, int rows, const QModelIndex &par
         return false;
     }
 
-    if(!parent.isValid()) {
+    if(!parent.isValid()) { // department(s) is(are) removed
 
         // remove all employees inside removed departments
         for(int i = 0; i < rows; ++i) {
@@ -259,15 +264,17 @@ bool CompanyDataModel::removeRows(int position, int rows, const QModelIndex &par
         return true;
     }
 
+    // employee(s) is (are) removed
     DataItem *parentItem = static_cast<DataItem*>(parent.internalPointer());
     if (!parentItem) {
         return false;
     }
+
     beginRemoveRows(parent, position, position + rows - 1);
     const bool success = parentItem->removeChildren(position, rows);
     endRemoveRows();
 
-    /// TODO: recalculate DepartmentNumEmployees value & Avg salary for current department
+    updateDepartmentData(parentItem);
 
     return success;
 }
@@ -289,4 +296,23 @@ DataItem *CompanyDataModel::createEmptyDepartment()
     departmentValues.push_back(0);
     DataItem *departmentItem = new DataItem(departmentValues);
     return departmentItem;
+}
+
+void CompanyDataModel::updateDepartmentData(DataItem *departmentItem)
+{
+    int numEmployees = departmentItem->childCount();
+    int avgSalary = 0;
+    int sumSalary = 0;
+    if (numEmployees > 0) {
+        for (int i = 0; i < numEmployees; ++i) {
+            DataItem *employee = departmentItem->child(i);
+            Q_ASSERT(employee != nullptr);
+            sumSalary += employee->data(EmployeeSalary).toInt();
+        }
+
+        avgSalary = std::round(static_cast<float>(sumSalary) / static_cast<float>(numEmployees));
+    }
+    departmentItem->setData(DepartmentNumEmployees, numEmployees);
+    departmentItem->setData(EmployeeSalary, avgSalary);
+    //emit dataChanged(index, index, {Qt::DisplayRole, Qt::EditRole});
 }

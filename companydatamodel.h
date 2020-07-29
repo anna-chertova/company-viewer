@@ -38,6 +38,7 @@ public slots:
 
 private:
     DataItem *createEmptyDepartment();
+    void updateDepartmentData(DataItem *departmentItem);
 
 private:
 
