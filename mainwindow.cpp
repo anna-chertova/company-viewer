@@ -216,6 +216,11 @@ void MainWindow::addEmployee()
 
 void MainWindow::removeEmployee()
 {
+    const QModelIndex index = treeView->selectionModel()->currentIndex();
+    QAbstractItemModel *model = treeView->model();
+    if (!model->removeRow(index.row(), index.parent()))
+        return;
+
     updateActions();
     updateView();
 }
