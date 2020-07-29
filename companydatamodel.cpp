@@ -102,6 +102,9 @@ bool CompanyDataModel::setData(const QModelIndex &index, const QVariant &value, 
     bool success = item->setData(index.column(), value);
     if(success)
         emit dataChanged(index, index, {Qt::DisplayRole, Qt::EditRole});
+
+    /// TODO: if EmployeeSalary has changed recalculate Avg salary for current department
+
     return success;
 }
 
@@ -183,7 +186,7 @@ Department CompanyDataModel::getDepartment(int n) const
     department.name = item->data(DepartmentName).toString();
 
     for(int i = 0; i < item->childCount(); ++i) {
-       Employee employee(&department);
+       Employee employee;
        DataItem *childItem = item->child(i);
        employee.surname = childItem->data(EmployeeSurname).toString();
        employee.name = childItem->data(EmployeeName).toString();
@@ -223,6 +226,8 @@ bool CompanyDataModel::insertRows(int position, int rows, const QModelIndex &par
                                                     rows,
                                                     ColumnCount);
     endInsertRows();
+
+    /// TODO: recalculate DepartmentNumEmployees value & Avg salary for current department
     return success;
 }
 
@@ -261,6 +266,8 @@ bool CompanyDataModel::removeRows(int position, int rows, const QModelIndex &par
     beginRemoveRows(parent, position, position + rows - 1);
     const bool success = parentItem->removeChildren(position, rows);
     endRemoveRows();
+
+    /// TODO: recalculate DepartmentNumEmployees value & Avg salary for current department
 
     return success;
 }
