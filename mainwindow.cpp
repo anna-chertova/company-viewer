@@ -34,12 +34,17 @@ void MainWindow::setModel(QAbstractItemModel *model)
 #ifndef QT_NO_CONTEXTMENU
 void MainWindow::contextMenuEvent(QContextMenuEvent *event)
 {
+    QModelIndex curIndex = treeView->indexAt(event->pos());
+    if(!curIndex.isValid())
+        return;
+
     QMenu menu(this);
     menu.addAction(actionAddDepartment);
     menu.addAction(actionRemoveDepartment);
     menu.addAction(actionAddEmployee);
     menu.addAction(actionRemoveEmployee);
     menu.exec(event->globalPos());
+
 }
 #endif // QT_NO_CONTEXTMENU
 
@@ -142,6 +147,8 @@ void MainWindow::addDepartment()
 
     const QModelIndex child = model->index(index.row() + 1, 0, index.parent());
     model->setData(child, QVariant(tr("[Enter name]")), Qt::EditRole);
+
+    updateView();
 }
 
 void MainWindow::removeDepartment()
@@ -151,16 +158,58 @@ void MainWindow::removeDepartment()
     if (!model->removeRow(index.row(), index.parent()))
         return;
     updateActions();
+    updateView();
 }
 
 void MainWindow::addEmployee()
 {
+    const QModelIndex index = treeView->selectionModel()->currentIndex();
+    QAbstractItemModel *model = treeView->model();
 
+    QModelIndex parentIndex = index;
+    int childRow = 0;
+
+    // if employee row is selected,
+    // then take its parent as a parent for the new employee
+    // otherwise currently selected department will be the parent
+    if(index.parent().isValid()){
+       parentIndex = index.parent();
+       childRow = index.row() + 1;
+    }
+
+    if (!model->insertRow(childRow, parentIndex))
+        return;
+
+    updateActions();
+
+    model->setData(
+                model->index(childRow, 2, parentIndex),
+                QVariant(tr("[Enter surname]")),
+                Qt::EditRole);
+    model->setData(
+                model->index(childRow, 3, parentIndex),
+                QVariant(tr("[Enter name]")),
+                Qt::EditRole);
+    model->setData(
+                model->index(childRow, 4, parentIndex),
+                QVariant(tr("[Enter middlename]")),
+                Qt::EditRole);
+    model->setData(
+                model->index(childRow, 5, parentIndex),
+                QVariant(tr("[Enter position]")),
+                Qt::EditRole);
+    model->setData(
+                model->index(childRow, 6, parentIndex),
+                QVariant(tr("[Enter salary]")),
+                Qt::EditRole);
+
+    updateView();
 }
 
 void MainWindow::removeEmployee()
 {
-
+    updateActions();
+    updateView();
 }
 
 void MainWindow::undo()
