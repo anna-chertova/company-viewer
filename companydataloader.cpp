@@ -68,7 +68,7 @@ Department CompanyDataLoader::parseDepartment()
 
     while (xmlReader.readNextStartElement()) {
         if (xmlReader.name() == QLatin1String("employments"))
-            d.employees = parseEmployments(&d);
+            d.employees = parseEmployments();
         else
             xmlReader.skipCurrentElement();
     }
@@ -76,7 +76,7 @@ Department CompanyDataLoader::parseDepartment()
     return d;
 }
 
-std::vector<Employee> CompanyDataLoader::parseEmployments(Department *d)
+std::vector<Employee> CompanyDataLoader::parseEmployments()
 {
     Q_ASSERT(xmlReader.isStartElement() &&
              xmlReader.name() == QLatin1String("employments"));
@@ -85,7 +85,7 @@ std::vector<Employee> CompanyDataLoader::parseEmployments(Department *d)
 
     while (xmlReader.readNextStartElement()) {
         if (xmlReader.name() == QLatin1String("employment")) {
-            Employee emp = parseEmployment(d);
+            Employee emp = parseEmployment();
             employees.push_back(emp);
         }
         else {
@@ -95,12 +95,12 @@ std::vector<Employee> CompanyDataLoader::parseEmployments(Department *d)
     return employees;
 }
 
-Employee CompanyDataLoader::parseEmployment(Department *d)
+Employee CompanyDataLoader::parseEmployment()
 {
     Q_ASSERT(xmlReader.isStartElement() &&
              xmlReader.name() == QLatin1String("employment"));
 
-    Employee emp(d);
+    Employee emp;
 
     while (xmlReader.readNextStartElement()) {
         if (xmlReader.name() == QLatin1String("surname"))

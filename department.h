@@ -14,15 +14,11 @@ struct Department;
 
 struct Employee {
 
-    /// TODO: remove pointer to department here
-    Department *department;
     QString surname;
     QString name;
     QString middlename;
     QString position;
     int salary;
-
-    Employee(Department *d): department(d) {};
 
     bool operator== (const Employee& other) const
     {

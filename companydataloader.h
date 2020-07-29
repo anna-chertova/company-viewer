@@ -32,8 +32,8 @@ private:
 
     void parseDepartments();
     Department parseDepartment();
-    std::vector<Employee> parseEmployments(Department *d);
-    Employee parseEmployment(Department *d);
+    std::vector<Employee> parseEmployments();
+    Employee parseEmployment();
     QString parseSurname();
     QString parseName();
     QString parseMiddleName();
