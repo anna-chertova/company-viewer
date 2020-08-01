@@ -1,6 +1,6 @@
 /*
  * (c) Anna Chertova 2020
- * This entity is responsible for saving CompanyData to an Xml file
+ * This entity is responsible for saving company data to an xml file
  */
 
 #ifndef COMPANYDATASAVER_H
@@ -13,9 +13,13 @@
 
 class CompanyDataSaver : public QObject
 {
+
     Q_OBJECT
+
 public:
-    explicit CompanyDataSaver(CompanyDataModel *data, QObject *parent = nullptr);
+
+    explicit CompanyDataSaver(CompanyDataModel *data,
+                              QObject *parent = nullptr);
 
 public slots:
 

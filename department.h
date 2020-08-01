@@ -36,27 +36,6 @@ struct Department {
     Department() {};
     Department(const QString& n): name(n) {};
 
-    /// TODO: remove this logic in future
-    /// (to avoid code duplication)
-    /// Saver should be updated
-    int getNumEmployees() const {
-        return employees.size();
-    }
-
-    /// TODO: remove this logic in future
-    /// (to avoid code duplication)
-    /// Saver should be updated
-    int getAvgSalary() const {
-        if (employees.empty())
-            return 0;
-        int sum = 0;
-        for (auto e : employees) {
-            sum += e.salary;
-        }
-        return std::round(static_cast<float>(sum)/
-                          static_cast<float>(employees.size()));
-    }
-
     bool operator== (const Department& other) const
     {
         return (name == other.name);

@@ -1,6 +1,6 @@
 /*
  * (c) Anna Chertova 2020
- * This class manages loading data from xml file
+ * This class manages loading data from an xml file
  */
 
 #ifndef COMPANYDATALOADER_H
@@ -16,11 +16,12 @@ class CompanyDataLoader : public QObject
 
 public:
 
-    explicit CompanyDataLoader(CompanyDataModel *dataModel, QObject *parent = nullptr);
-    QString errorString() const;
+    explicit CompanyDataLoader(CompanyDataModel *dataModel,
+                               QObject *parent = nullptr);
 
 public slots:
 
+    // parse specified xml file
     void parseFile(const QString &fileName);    
 
 signals:
@@ -30,10 +31,19 @@ signals:
 
 private:
 
+    // forms a human-readable error string from
+    // xml parser errors
+    QString errorString() const;
+    // parses departments list
     void parseDepartments();
+    // parses single department and returns a Department structure
     Department parseDepartment();
+    // parses employees list and returns a vector of Employees structures
     std::vector<Employee> parseEmployments();
+    // parse single employee and returns an Employee structure
     Employee parseEmployment();
+
+    // parse employee data
     QString parseSurname();
     QString parseName();
     QString parseMiddleName();

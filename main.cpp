@@ -1,3 +1,8 @@
+/*
+ * (c) Anna Chertova 2020
+ * Main app logic
+ */
+
 #include "companydataloader.h"
 #include "companydatasaver.h"
 #include "mainwindow.h"
@@ -11,15 +16,14 @@ int main(int argc, char *argv[])
     MainWindow w;
     CompanyDataModel companyDataModel;
 
+    // Load/save xml utilities
     CompanyDataLoader dataLoader(&companyDataModel);
     CompanyDataSaver dataSaver(&companyDataModel);
 
     QObject::connect(&w, &MainWindow::loadCompanyData,
                      &dataLoader, &CompanyDataLoader::parseFile);
     QObject::connect(&w, &MainWindow::saveCompanyData,
-                     &dataSaver, &CompanyDataSaver::saveFile);
-    QObject::connect(&w, &MainWindow::clearCompanyData,
-                     &companyDataModel, &CompanyDataModel::clear);
+                     &dataSaver, &CompanyDataSaver::saveFile);    
 
     QObject::connect(&dataLoader, &CompanyDataLoader::error,
                      &w, &MainWindow::errorDialog);
@@ -27,6 +31,9 @@ int main(int argc, char *argv[])
                      &w, &MainWindow::updateView);
     QObject::connect(&dataSaver, &CompanyDataSaver::error,
                      &w, &MainWindow::errorDialog);
+
+    QObject::connect(&w, &MainWindow::clearCompanyData,
+                     &companyDataModel, &CompanyDataModel::clear);
 
     w.setModel(&companyDataModel);
     w.show();

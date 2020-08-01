@@ -1,18 +1,16 @@
+/*
+ * (c) Anna Chertova 2020
+ * This class manages loading data from an xml file
+ */
+
 #include "companydataloader.h"
 #include <QFile>
 
-CompanyDataLoader::CompanyDataLoader(CompanyDataModel *dataModel, QObject *parent)
+CompanyDataLoader::CompanyDataLoader(CompanyDataModel *dataModel,
+                                     QObject *parent)
     : QObject(parent), companyDataModel(dataModel)
 {
 
-}
-
-QString CompanyDataLoader::errorString() const
-{
-    return QObject::tr("%1\nLine %2, column %3")
-            .arg(xmlReader.errorString())
-            .arg(xmlReader.lineNumber())
-            .arg(xmlReader.columnNumber());
 }
 
 void CompanyDataLoader::parseFile(const QString &fileName)
@@ -20,7 +18,8 @@ void CompanyDataLoader::parseFile(const QString &fileName)
     QFile file(fileName);
     if (!file.open(QFile::ReadWrite | QFile::Text))
     {
-        emit error(tr("Error opening file"),tr("Could not open file %1").arg(fileName));
+        emit error(tr("Error opening file"),
+                   tr("Could not open file %1").arg(fileName));
         return;
     }
 
@@ -38,6 +37,14 @@ void CompanyDataLoader::parseFile(const QString &fileName)
    }
 
    file.close();
+}
+
+QString CompanyDataLoader::errorString() const
+{
+    return QObject::tr("%1\nLine %2, column %3")
+            .arg(xmlReader.errorString())
+            .arg(xmlReader.lineNumber())
+            .arg(xmlReader.columnNumber());
 }
 
 void CompanyDataLoader::parseDepartments()

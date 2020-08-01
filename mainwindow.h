@@ -41,10 +41,11 @@ signals:
 public slots:
 
     void updateView();
-    void errorDialog(const QString &problem, const QString &error);
-    void updateActions();
+    void errorDialog(const QString &problem, const QString &error);    
 
-private slots:
+private slots:    
+
+    void updateActions();
 
     void open();
     void saveAs();
@@ -61,6 +62,7 @@ private slots:
     void about();
 
 private:
+
     void createActions();
 
 private:

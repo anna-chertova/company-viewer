@@ -1,6 +1,12 @@
+/*
+ * (c) Anna Chertova 2020
+ * Data item for hierarchical company data model (implementation)
+ */
+
 #include "dataitem.h"
 
-DataItem::DataItem(const std::vector<QVariant>& v, DataItem* p): parentItem(p), valueItems(v)
+DataItem::DataItem(const std::vector<QVariant>& v, DataItem* p):
+    parentItem(p), valueItems(v)
 {
 
 }
@@ -13,8 +19,8 @@ DataItem::~DataItem()
 
 DataItem *DataItem::child(int number)
 {
-    if (number < 0 || number >= static_cast<int>(childItems.size()))
-        return nullptr;
+    Q_ASSERT(number >= 0);
+    Q_ASSERT(number < static_cast<int>(childItems.size()));
     return childItems.at(number);
 }
 
@@ -30,8 +36,8 @@ int DataItem::columnCount() const
 
 QVariant DataItem::data(int column) const
 {
-    if (column < 0 || column >= static_cast<int>(valueItems.size()))
-        return QVariant();
+    Q_ASSERT(column >= 0);
+    Q_ASSERT(column < static_cast<int>(valueItems.size()));
     return valueItems.at(column);
 }
 
@@ -56,7 +62,8 @@ DataItem *DataItem::parent()
 
 bool DataItem::removeChildren(int position, int count)
 {
-    if (position < 0 || (position + count) > static_cast<int>(childItems.size()))
+    if (position < 0 ||
+            (position + count) > static_cast<int>(childItems.size()))
         return false;
 
     for (int offset = 0; offset < count; ++offset) {
@@ -71,7 +78,9 @@ bool DataItem::removeChildren(int position, int count)
 int DataItem::childNumber() const
 {
     if (parentItem) {
-        auto childOffset = std::find(parentItem->childItems.begin(), parentItem->childItems.end(), this);
+        auto childOffset = std::find(parentItem->childItems.begin(),
+                                     parentItem->childItems.end(),
+                                     this);
         return std::distance(parentItem->childItems.begin(), childOffset);
     }
     return 0;

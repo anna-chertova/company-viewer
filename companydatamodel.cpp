@@ -1,6 +1,11 @@
+/*
+ * (c) Anna Chertova 2020
+ * Hierarchical model implementation for company data
+ */
+
 #include "companydatamodel.h"
 
-CompanyDataModel::CompanyDataModel(QObject *parent) : QAbstractItemModel(parent)
+CompanyDataModel::CompanyDataModel(QObject *parent): QAbstractItemModel(parent)
 {
 
 }
@@ -8,9 +13,12 @@ CompanyDataModel::CompanyDataModel(QObject *parent) : QAbstractItemModel(parent)
 CompanyDataModel::~CompanyDataModel()
 {
     qDeleteAll(departmentItems);
+    departmentItems.clear();
 }
 
-QModelIndex CompanyDataModel::index(int row, int column, const QModelIndex &parent) const
+QModelIndex CompanyDataModel::index(int row,
+                                    int column,
+                                    const QModelIndex &parent) const
 {
     if (!hasIndex(row, column, parent)) {
         return QModelIndex();
@@ -18,13 +26,19 @@ QModelIndex CompanyDataModel::index(int row, int column, const QModelIndex &pare
 
     // one of root indices is requested (department)
     if (!parent.isValid()) {
-        Q_ASSERT(static_cast<int>(departmentItems.size()) > row);
-        return createIndex(row, column, const_cast<DataItem*>(departmentItems[row]));
+        Q_ASSERT(row >= 0);
+        Q_ASSERT(row < static_cast<int>(departmentItems.size()));
+        return createIndex(row,
+                           column,
+                           const_cast<DataItem*>(departmentItems[row]));
     }
+
     // one of child indices is requested (employee)
-    DataItem *departmentItem = static_cast<DataItem*>(parent.internalPointer());
+    DataItem *departmentItem =
+            static_cast<DataItem*>(parent.internalPointer());
     Q_ASSERT(departmentItem != nullptr);
-    Q_ASSERT(static_cast<int>(departmentItem->childCount()) > row);
+    Q_ASSERT(row >= 0);
+    Q_ASSERT(static_cast<int>(row < departmentItem->childCount()));
     return createIndex(row, column, departmentItem->child(row));
 }
 
@@ -38,8 +52,12 @@ QModelIndex CompanyDataModel::parent(const QModelIndex &child) const
     DataItem *employeeItem = static_cast<DataItem*>(child.internalPointer());
     if (employeeItem) {
         DataItem *departmentItem = employeeItem->parent();
-        if (departmentItem)
-            return createIndex(departmentItem->childNumber(), 0, departmentItem);
+        if (departmentItem) {
+            return createIndex(
+                        departmentItem->childNumber(),
+                        0,
+                        departmentItem);
+        }
     }
     // departments have no parents    
     return QModelIndex();
@@ -51,7 +69,8 @@ int CompanyDataModel::rowCount(const QModelIndex &parent) const
         return departmentItems.size();
     }
 
-    DataItem *departmentItem = static_cast<DataItem*>(parent.internalPointer());
+    DataItem *departmentItem =
+            static_cast<DataItem*>(parent.internalPointer());
     Q_ASSERT(departmentItem != nullptr);
 
     return departmentItem->childCount();
@@ -82,7 +101,9 @@ QVariant CompanyDataModel::data(const QModelIndex &index, int role) const
     return item->data(index.column());
 }
 
-bool CompanyDataModel::setData(const QModelIndex &index, const QVariant &value, int role)
+bool CompanyDataModel::setData(const QModelIndex &index,
+                               const QVariant &value,
+                               int role)
 {
     Q_ASSERT(checkIndex(index,
                         QAbstractItemModel::CheckIndexOption::IndexIsValid |
@@ -99,19 +120,22 @@ bool CompanyDataModel::setData(const QModelIndex &index, const QVariant &value, 
     Q_ASSERT(item != nullptr);
     Q_ASSERT(flags(index) && Qt::ItemIsEditable);
 
-    bool success = item->setData(index.column(), value);    
+    bool success = item->setData(index.column(), value);
 
-    // if employee salary has changed then recalculate avg salary for current department
-    if(item->parent() && index.column() == EmployeeSalary)
-        updateDepartmentData(item->parent());
+    if(success) {
+        // if employee salary has changed then recalculate avg salary for current department
+        if(item->parent() && index.column() == EmployeeSalary)
+            updateDepartmentData(item->parent());
 
-    if(success)
         emit dataChanged(index, index, {Qt::DisplayRole, Qt::EditRole});
+    }
 
     return success;
 }
 
-QVariant CompanyDataModel::headerData(int section, Qt::Orientation orientation, int role) const
+QVariant CompanyDataModel::headerData(int section,
+                                      Qt::Orientation orientation,
+                                      int role) const
 {
     const QStringList headers = {tr("Department"),
                                  tr("Num employees"),
@@ -120,7 +144,10 @@ QVariant CompanyDataModel::headerData(int section, Qt::Orientation orientation, 
                                  tr("Middlename"),
                                  tr("Position"),
                                  tr("Salary")};
-    if (orientation == Qt::Horizontal && role == Qt::DisplayRole && section < headers.size()) {
+    if (orientation == Qt::Horizontal &&
+        role == Qt::DisplayRole &&
+        section < headers.size()) {
+
         return headers[section];
     }
     return QVariant();
@@ -147,64 +174,10 @@ Qt::ItemFlags CompanyDataModel::flags(const QModelIndex &index) const
     return flags;
 }
 
-void CompanyDataModel::addDepartment(Department department)
-{
-    DataItem *departmentItem = createEmptyDepartment();
-    departmentItem->setData(DepartmentName, department.name);
-    //departmentItem->setData(DepartmentNumEmployees, department.getNumEmployees());
-    //departmentItem->setData(EmployeeSalary, department.getAvgSalary());
 
-    for(int i = 0; i < static_cast<int>(department.employees.size()); ++i) {
-        Employee employee = department.employees[i];
-        if (departmentItem->insertChildren(departmentItem->childCount(), 1, ColumnCount)) {
-            DataItem *employeeItem = departmentItem->child(departmentItem->childCount() - 1);
-            employeeItem->setData(DepartmentName, "");
-            employeeItem->setData(DepartmentNumEmployees, "");
-            employeeItem->setData(EmployeeSurname, employee.surname);
-            employeeItem->setData(EmployeeName, employee.name);
-            employeeItem->setData(EmployeeMiddleName, employee.middlename);
-            employeeItem->setData(EmployeePosition, employee.position);
-            employeeItem->setData(EmployeeSalary, employee.salary);
-        }
-        else {
-            /// TODO: handle error adding employee
-        }
-    }
-
-    departmentItems.push_back(departmentItem);
-
-    updateDepartmentData(departmentItem);
-}
-
-int CompanyDataModel::getNumDepartments() const
-{
-    return departmentItems.size();
-}
-
-Department CompanyDataModel::getDepartment(int n) const
-{
-    /// TODO: can we avoid this conversion here?
-
-    DataItem *item = departmentItems.at(n);
-
-    Department department;
-    department.name = item->data(DepartmentName).toString();
-
-    for(int i = 0; i < item->childCount(); ++i) {
-       Employee employee;
-       DataItem *childItem = item->child(i);
-       employee.surname = childItem->data(EmployeeSurname).toString();
-       employee.name = childItem->data(EmployeeName).toString();
-       employee.middlename = childItem->data(EmployeeMiddleName).toString();
-       employee.position = childItem->data(EmployeePosition).toString();
-       employee.salary = childItem->data(EmployeeSalary).toInt();
-       department.employees.push_back(employee);
-    }
-
-    return department;
-}
-
-bool CompanyDataModel::insertRows(int position, int rows, const QModelIndex &parent)
+bool CompanyDataModel::insertRows(int position,
+                                  int rows,
+                                  const QModelIndex &parent)
 {
     if(!parent.isValid())
     {
@@ -222,6 +195,7 @@ bool CompanyDataModel::insertRows(int position, int rows, const QModelIndex &par
         return true;
     }
 
+    // add employee row
     DataItem *parentItem = static_cast<DataItem*>(parent.internalPointer());
     if (!parentItem)
        return false;
@@ -236,7 +210,9 @@ bool CompanyDataModel::insertRows(int position, int rows, const QModelIndex &par
     return success;
 }
 
-bool CompanyDataModel::removeRows(int position, int rows, const QModelIndex &parent)
+bool CompanyDataModel::removeRows(int position,
+                                  int rows,
+                                  const QModelIndex &parent)
 {
     if(rows == 0) { // nothing to remove
         return false;
@@ -244,7 +220,7 @@ bool CompanyDataModel::removeRows(int position, int rows, const QModelIndex &par
 
     if(!parent.isValid()) { // department(s) is(are) removed
 
-        // remove all employees inside removed departments
+        // remove all employees inside departments being removed
         for(int i = 0; i < rows; ++i) {
             DataItem *departmentItem = departmentItems.at(position + i);
             beginRemoveRows(parent, 0, rows - 1);
@@ -279,13 +255,72 @@ bool CompanyDataModel::removeRows(int position, int rows, const QModelIndex &par
     return success;
 }
 
+void CompanyDataModel::addDepartment(Department department)
+{
+    DataItem *departmentItem = createEmptyDepartment();
+    departmentItem->setData(DepartmentName, department.name);
+
+    for(int i = 0; i < static_cast<int>(department.employees.size()); ++i) {
+
+        Employee employee = department.employees[i];
+
+        if (departmentItem->insertChildren(
+                    departmentItem->childCount(),
+                    1,
+                    ColumnCount)) {
+
+            DataItem *employeeItem = departmentItem->child(
+                        departmentItem->childCount() - 1);
+            employeeItem->setData(DepartmentName, "");
+            employeeItem->setData(DepartmentNumEmployees, "");
+            employeeItem->setData(EmployeeSurname, employee.surname);
+            employeeItem->setData(EmployeeName, employee.name);
+            employeeItem->setData(EmployeeMiddleName, employee.middlename);
+            employeeItem->setData(EmployeePosition, employee.position);
+            employeeItem->setData(EmployeeSalary, employee.salary);
+        }
+    }
+
+    departmentItems.push_back(departmentItem);
+
+    updateDepartmentData(departmentItem);
+}
+
+int CompanyDataModel::getNumDepartments() const
+{
+    return departmentItems.size();
+}
+
+Department CompanyDataModel::getDepartment(int n) const
+{
+    DataItem *item = departmentItems.at(n);
+
+    Department department;
+    department.name = item->data(DepartmentName).toString();
+
+    for(int i = 0; i < item->childCount(); ++i) {
+       Employee employee;
+       DataItem *childItem = item->child(i);
+       employee.surname = childItem->data(EmployeeSurname).toString();
+       employee.name = childItem->data(EmployeeName).toString();
+       employee.middlename = childItem->data(EmployeeMiddleName).toString();
+       employee.position = childItem->data(EmployeePosition).toString();
+       employee.salary = childItem->data(EmployeeSalary).toInt();
+       department.employees.push_back(employee);
+    }
+
+    return department;
+}
+
 void CompanyDataModel::clear()
 {
+    // clear company data
     removeRows(0, departmentItems.size());
 }
 
 DataItem *CompanyDataModel::createEmptyDepartment()
 {
+    // create department with default values
     std::vector<QVariant> departmentValues;
     departmentValues.push_back("");
     departmentValues.push_back(0);
@@ -310,9 +345,9 @@ void CompanyDataModel::updateDepartmentData(DataItem *departmentItem)
             sumSalary += employee->data(EmployeeSalary).toInt();
         }
 
-        avgSalary = std::round(static_cast<float>(sumSalary) / static_cast<float>(numEmployees));
+        avgSalary = std::round(static_cast<float>(sumSalary) /
+                               static_cast<float>(numEmployees));
     }
     departmentItem->setData(DepartmentNumEmployees, numEmployees);
     departmentItem->setData(EmployeeSalary, avgSalary);
-    //emit dataChanged(index, index, {Qt::DisplayRole, Qt::EditRole});
 }

@@ -1,3 +1,8 @@
+/*
+ * (c) Anna Chertova 2020
+ * GUI logic
+ */
+
 #include <QContextMenuEvent>
 #include <QFileDialog>
 #include <QHeaderView>
@@ -19,7 +24,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 MainWindow::~MainWindow()
 {
-    // parent will destroy its children
+
 }
 
 void MainWindow::setModel(QAbstractItemModel *model)
@@ -227,12 +232,12 @@ void MainWindow::removeEmployee()
 
 void MainWindow::undo()
 {
-
+    /// TODO: implement me
 }
 
 void MainWindow::redo()
 {
-
+    /// TODO: implement me
 }
 
 void MainWindow::about()
