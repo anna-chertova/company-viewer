@@ -10,23 +10,23 @@
 #include <vector>
 #include <QString>
 
+struct Department;
+
 struct Employee {
-
-    Employee() {};
-
-    Employee(const QString& sn,
-             const QString& n,
-             const QString& mn,
-             const QString &p,
-             int s):
-        surname(sn), name(n), middlename(mn), position(p), salary(s) {
-    }
 
     QString surname;
     QString name;
     QString middlename;
     QString position;
     int salary;
+
+    bool operator== (const Employee& other) const
+    {
+        return (surname == other.surname &&
+                name == other.name &&
+                middlename == other.middlename &&
+                position == other.position);
+    }
 };
 
 struct Department {
@@ -36,17 +36,9 @@ struct Department {
     Department() {};
     Department(const QString& n): name(n) {};
 
-    int getNumEmployees() const {
-        return employees.size();
-    }
-
-    int getAvgSalary() const {
-        int sum = 0;
-        for (auto e : employees) {
-            sum += e.salary;
-        }
-        return std::round(static_cast<float>(sum)/
-                          static_cast<float>(employees.size()));
+    bool operator== (const Department& other) const
+    {
+        return (name == other.name);
     }
 };
 

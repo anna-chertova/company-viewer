@@ -1,3 +1,9 @@
+/*
+ * (c) Anna Chertova 2020
+ * GUI logic
+ */
+
+#include <QContextMenuEvent>
 #include <QFileDialog>
 #include <QHeaderView>
 #include <QMessageBox>
@@ -18,14 +24,34 @@ MainWindow::MainWindow(QWidget *parent)
 
 MainWindow::~MainWindow()
 {
-    // parent will destroy its children
+
 }
 
 void MainWindow::setModel(QAbstractItemModel *model)
 {
     treeView->setModel(model);
-    update();
+    connect(treeView->selectionModel(), &QItemSelectionModel::selectionChanged,
+                this, &MainWindow::updateActions);
+    updateView();
+    updateActions();
 }
+
+#ifndef QT_NO_CONTEXTMENU
+void MainWindow::contextMenuEvent(QContextMenuEvent *event)
+{
+    const QModelIndex curIndex = treeView->currentIndex();
+    if(!curIndex.isValid())
+        return;
+
+    QMenu menu(this);
+    menu.addAction(actionAddDepartment);
+    menu.addAction(actionRemoveDepartment);
+    menu.addAction(actionAddEmployee);
+    menu.addAction(actionRemoveEmployee);
+    menu.exec(event->globalPos());
+
+}
+#endif // QT_NO_CONTEXTMENU
 
 void MainWindow::open()
 {
@@ -36,7 +62,8 @@ void MainWindow::open()
     QString fileName = QFileDialog::getOpenFileName(
                 this,
                 tr("Open File"),
-                filesLocations.isEmpty() ? QDir::currentPath() : filesLocations.last(),
+                filesLocations.isEmpty() ?
+                    QDir::currentPath() : filesLocations.last(),
                 tr("XML files (*.xml)"));
     if(fileName.isNull()) return;
     /// TODO: think about behavior when error occurred while opening file
@@ -44,6 +71,11 @@ void MainWindow::open()
     setWindowTitle("Company Viewer - " + fileName);
     actionSaveAs->setEnabled(true);
     actionClose->setEnabled(true);
+    actionAddDepartment->setEnabled(true);
+    actionRemoveDepartment->setEnabled(true);
+    actionAddEmployee->setEnabled(true);
+    actionRemoveEmployee->setEnabled(true);
+    menuEdit->setEnabled(true);
 }
 
 void MainWindow::saveAs()
@@ -65,16 +97,155 @@ void MainWindow::close()
     setWindowTitle("Company Viewer");
     actionSaveAs->setEnabled(false);
     actionClose->setEnabled(false);
+    actionAddDepartment->setEnabled(false);
+    actionRemoveDepartment->setEnabled(false);
+    actionAddEmployee->setEnabled(false);
+    actionRemoveEmployee->setEnabled(false);
+    menuEdit->setEnabled(false);
     emit clearCompanyData();
 }
 
-void MainWindow::update()
+void MainWindow::updateView()
 {
     treeView->expandAll();
     int row_count = treeView->model()->rowCount();
     for(int i = 0; i < row_count; ++i) {
         treeView->resizeColumnToContents(i);
     }
+}
+
+void MainWindow::updateActions()
+{
+    const bool hasCurrent =
+            treeView->selectionModel()->currentIndex().isValid();
+
+    if (hasCurrent) {
+        treeView->closePersistentEditor(
+                    treeView->selectionModel()->currentIndex());
+
+        const int row = treeView->selectionModel()->currentIndex().row();
+        const int column = treeView->selectionModel()->currentIndex().column();
+        if (treeView->selectionModel()->currentIndex().parent().isValid()) {
+            statusBar()->showMessage(
+                        tr("Position: (%1,%2)").arg(row).arg(column));
+            actionRemoveEmployee->setEnabled(true);
+            actionRemoveDepartment->setEnabled(false);
+        }
+        else {
+            statusBar()->showMessage(
+                        tr("Position: (%1,%2) in top level").arg(row).arg(column));
+            actionRemoveDepartment->setEnabled(true);
+            actionRemoveEmployee->setEnabled(false);
+        }
+    }
+}
+
+void MainWindow::addDepartment()
+{
+    const QModelIndex index = treeView->selectionModel()->currentIndex();
+    QAbstractItemModel *model = treeView->model();
+
+    QModelIndex parentIndex = index.parent();
+
+    // if employee row is selected
+    // then take its parent's parent as a parent for the new department
+    if(index.parent().isValid()) {
+        parentIndex = parentIndex.parent();
+    }
+
+    if (!model->insertRow(index.row() + 1, parentIndex))
+        return;
+
+    updateActions();
+
+    const QModelIndex child = model->index(index.row() + 1, 0, parentIndex);
+    model->setData(child, QVariant(tr("[Enter name]")), Qt::EditRole);
+
+    updateView();
+}
+
+void MainWindow::removeDepartment()
+{
+    const QModelIndex index = treeView->selectionModel()->currentIndex();
+    QAbstractItemModel *model = treeView->model();
+    if (!model->removeRow(index.row(), index.parent()))
+        return;
+    updateActions();
+    updateView();
+}
+
+void MainWindow::addEmployee()
+{
+    const QModelIndex index = treeView->selectionModel()->currentIndex();
+    QAbstractItemModel *model = treeView->model();
+
+    QModelIndex parentIndex = index;
+    int childRow = 0;
+
+    // if employee row is selected,
+    // then take its parent as a parent for the new employee
+    // otherwise currently selected department will be the parent
+    if(index.parent().isValid()) {
+       parentIndex = index.parent();
+       childRow = index.row() + 1;
+    }
+
+    if (!model->insertRow(childRow, parentIndex))
+        return;
+
+    updateActions();
+
+    model->setData(
+                model->index(childRow, 2, parentIndex),
+                QVariant(tr("[Enter surname]")),
+                Qt::EditRole);
+    model->setData(
+                model->index(childRow, 3, parentIndex),
+                QVariant(tr("[Enter name]")),
+                Qt::EditRole);
+    model->setData(
+                model->index(childRow, 4, parentIndex),
+                QVariant(tr("[Enter middlename]")),
+                Qt::EditRole);
+    model->setData(
+                model->index(childRow, 5, parentIndex),
+                QVariant(tr("[Enter position]")),
+                Qt::EditRole);
+    model->setData(
+                model->index(childRow, 6, parentIndex),
+                QVariant(tr("[Enter salary]")),
+                Qt::EditRole);
+
+    updateView();
+}
+
+void MainWindow::removeEmployee()
+{
+    const QModelIndex index = treeView->selectionModel()->currentIndex();
+    QAbstractItemModel *model = treeView->model();
+    if (!model->removeRow(index.row(), index.parent()))
+        return;
+
+    updateActions();
+    updateView();
+}
+
+void MainWindow::undo()
+{
+    /// TODO: implement me
+}
+
+void MainWindow::redo()
+{
+    /// TODO: implement me
+}
+
+void MainWindow::about()
+{
+    QMessageBox::about(this, tr("About Menu"),
+                       tr("Company viewer - program for viewing and editing company files\n"
+                          "(xml files containing list of company departments & employees)\n"
+                          "\n(c) Anna Chertova 2020"));
 }
 
 void MainWindow::errorDialog(const QString &problem, const QString &error)
@@ -85,19 +256,62 @@ void MainWindow::errorDialog(const QString &problem, const QString &error)
 void MainWindow::createActions()
 {
     // Create menu actions
-    menuFile = menuBar()->addMenu(tr("&File"));
+
+    // File menu
+    QMenu *menuFile = menuBar()->addMenu(tr("&File"));
     actionOpen = menuFile->addAction(tr("&Open..."),
-                                              this,
-                                              &MainWindow::open);
+                                     this,
+                                     &MainWindow::open);
     actionOpen->setShortcut(QKeySequence::Open);
 
     actionSaveAs = menuFile->addAction(tr("&Save as..."),
-                                                this,
-                                                &MainWindow::saveAs);
+                                       this,
+                                       &MainWindow::saveAs);
+    actionSaveAs->setShortcut(QKeySequence::SaveAs);
     actionSaveAs->setEnabled(false);
 
-    actionClose = menuFile->addAction(tr("&Close"),
-                                               this,
-                                               &MainWindow::close);
+    actionClose = menuFile->addAction(tr("&Close"), this, &MainWindow::close);
+    actionClose->setShortcut(QKeySequence::Close);
     actionClose->setEnabled(false);
+
+    // Edit menu (Add/remove department/employee)
+    menuEdit = menuBar()->addMenu(tr("&Edit"));
+    menuEdit->setEnabled(false);
+
+    actionAddDepartment = menuEdit->addAction(
+                tr("Add department"),
+                this,
+                &MainWindow::addDepartment);
+    actionAddDepartment->setEnabled(false);
+    actionRemoveDepartment = menuEdit->addAction(
+                tr("Remove department"),
+                this,
+                &MainWindow::removeDepartment);
+    actionRemoveDepartment->setEnabled(false);
+    actionAddEmployee = menuEdit->addAction(
+                tr("Add employee"),
+                this,
+                &MainWindow::addEmployee);
+    actionAddEmployee->setEnabled(false);
+    actionRemoveEmployee = menuEdit->addAction(
+                tr("Remove employee"),
+                this,
+                &MainWindow::removeEmployee);
+    actionRemoveEmployee->setEnabled(false);
+
+    // Edit menu (Undo/redo)
+    menuEdit->addSeparator();
+    actionUndo = menuEdit->addAction(tr("&Undo"), this, &MainWindow::undo);
+    actionUndo->setShortcut(QKeySequence::Undo);
+    actionUndo->setEnabled(false);
+
+    actionRedo = menuEdit->addAction(tr("&Redo"), this, &MainWindow::redo);
+    actionRedo->setShortcut(QKeySequence::Redo);
+    actionRedo->setEnabled(false);
+
+    // Help menu
+    QMenu *menuHelp = menuBar()->addMenu(tr("&Help"));
+    menuHelp->addAction(tr("&About"), this, &MainWindow::about);
+
+    connect(menuEdit, &QMenu::aboutToShow, this, &MainWindow::updateActions);
 }

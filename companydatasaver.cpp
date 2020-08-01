@@ -1,7 +1,12 @@
+/*
+ * (c) Anna Chertova 2020
+ * This entity is responsible for saving company data to an xml file
+ */
+
 #include "companydatasaver.h"
 #include <QFile>
 
-CompanyDataSaver::CompanyDataSaver(CompanyData *data, QObject *parent)
+CompanyDataSaver::CompanyDataSaver(CompanyDataModel *data, QObject *parent)
     : QObject(parent), companyData(data)
 {
 
@@ -12,7 +17,8 @@ void CompanyDataSaver::saveFile(const QString &fileName)
     QFile file(fileName);
     if (!file.open(QFile::ReadWrite | QFile::Text))
     {
-        emit error(tr("Error opening file"),tr("Could not open file %1").arg(fileName));
+        emit error(tr("Error opening file"),
+                   tr("Could not open file %1").arg(fileName));
         return;
     }
 
@@ -22,17 +28,25 @@ void CompanyDataSaver::saveFile(const QString &fileName)
     xmlWriter.writeStartElement("departments");
 
     for(int i = 0; i < companyData->getNumDepartments(); ++i) {
-        const Department& d = companyData->getDepartment(i);
+
+        Department d = companyData->getDepartment(i);
         xmlWriter.writeStartElement("department");
         xmlWriter.writeAttribute("name", d.name);
         xmlWriter.writeStartElement("employments");
-        for (int j = 0; j < d.getNumEmployees(); ++j) {
+
+        for (int j = 0; j < static_cast<int>(d.employees.size()); ++j) {
+
             xmlWriter.writeStartElement("employment");
-            const Employee& e = d.employees[j];
-            if(!e.surname.isEmpty()) xmlWriter.writeTextElement("surname",e.surname);
-            if(!e.name.isEmpty()) xmlWriter.writeTextElement("name",e.name);
-            if(!e.middlename.isEmpty()) xmlWriter.writeTextElement("middleName",e.middlename);
-            if(!e.position.isEmpty()) xmlWriter.writeTextElement("function",e.position);
+            Employee e = d.employees[j];
+
+            if(!e.surname.isEmpty())
+                xmlWriter.writeTextElement("surname",e.surname);
+            if(!e.name.isEmpty())
+                xmlWriter.writeTextElement("name",e.name);
+            if(!e.middlename.isEmpty())
+                xmlWriter.writeTextElement("middleName",e.middlename);
+            if(!e.position.isEmpty())
+                xmlWriter.writeTextElement("function",e.position);
             xmlWriter.writeTextElement("salary",QString::number(e.salary));
             xmlWriter.writeEndElement(); //employment
         }

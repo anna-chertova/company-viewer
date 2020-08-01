@@ -16,16 +16,18 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-    companydata.cpp \
     companydataloader.cpp \
+    companydatamodel.cpp \
     companydatasaver.cpp \
+    dataitem.cpp \
     main.cpp \
     mainwindow.cpp
 
 HEADERS += \
-    companydata.h \
     companydataloader.h \
+    companydatamodel.h \
     companydatasaver.h \
+    dataitem.h \
     department.h \
     mainwindow.h
 
