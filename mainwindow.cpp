@@ -9,6 +9,8 @@
 #include <QMessageBox>
 #include <QStandardPaths>
 #include <QTreeView>
+#include <QUndoStack>
+#include <QUndoView>
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
@@ -18,7 +20,12 @@ MainWindow::MainWindow(QWidget *parent)
     , treeView(new QTreeView(this))    
 {
     ui->setupUi(this);
+
+    undoStack = new QUndoStack(this);
+
     createActions();
+    createUndoView();
+    createMenus();
     setCentralWidget(treeView);
 }
 
@@ -230,16 +237,6 @@ void MainWindow::removeEmployee()
     updateView();
 }
 
-void MainWindow::undo()
-{
-    /// TODO: implement me
-}
-
-void MainWindow::redo()
-{
-    /// TODO: implement me
-}
-
 void MainWindow::about()
 {
     QMessageBox::about(this, tr("About Menu"),
@@ -258,60 +255,90 @@ void MainWindow::createActions()
     // Create menu actions
 
     // File menu
-    QMenu *menuFile = menuBar()->addMenu(tr("&File"));
-    actionOpen = menuFile->addAction(tr("&Open..."),
-                                     this,
-                                     &MainWindow::open);
+    actionOpen = new QAction(tr("&Open..."), this);
     actionOpen->setShortcut(QKeySequence::Open);
+    connect(actionOpen, &QAction::triggered, this,&MainWindow::open);
 
-    actionSaveAs = menuFile->addAction(tr("&Save as..."),
-                                       this,
-                                       &MainWindow::saveAs);
+    actionSaveAs = new QAction(tr("&Save as..."), this);
     actionSaveAs->setShortcut(QKeySequence::SaveAs);
     actionSaveAs->setEnabled(false);
+    connect(actionSaveAs, &QAction::triggered, this, &MainWindow::saveAs);
 
-    actionClose = menuFile->addAction(tr("&Close"), this, &MainWindow::close);
+    actionClose = new QAction(tr("&Close"), this);
     actionClose->setShortcut(QKeySequence::Close);
     actionClose->setEnabled(false);
+    connect(actionClose, &QAction::triggered, this, &MainWindow::close);
 
     // Edit menu (Add/remove department/employee)
-    menuEdit = menuBar()->addMenu(tr("&Edit"));
-    menuEdit->setEnabled(false);
 
-    actionAddDepartment = menuEdit->addAction(
-                tr("Add department"),
-                this,
-                &MainWindow::addDepartment);
+    actionAddDepartment = new QAction(tr("Add department"), this);
     actionAddDepartment->setEnabled(false);
-    actionRemoveDepartment = menuEdit->addAction(
-                tr("Remove department"),
-                this,
-                &MainWindow::removeDepartment);
+    connect(actionAddDepartment,
+            &QAction::triggered,
+            this,
+            &MainWindow::addDepartment);
+
+    actionRemoveDepartment = new QAction(tr("Remove department"), this);
     actionRemoveDepartment->setEnabled(false);
-    actionAddEmployee = menuEdit->addAction(
-                tr("Add employee"),
-                this,
-                &MainWindow::addEmployee);
+    connect(actionRemoveDepartment,
+            &QAction::triggered,
+            this,
+            &MainWindow::removeDepartment);
+
+    actionAddEmployee = new QAction(tr("Add employee"), this);
     actionAddEmployee->setEnabled(false);
-    actionRemoveEmployee = menuEdit->addAction(
-                tr("Remove employee"),
-                this,
-                &MainWindow::removeEmployee);
+    connect(actionAddEmployee,
+            &QAction::triggered,
+            this,
+            &MainWindow::addEmployee);
+
+    actionRemoveEmployee = new QAction(tr("Remove employee"), this);
     actionRemoveEmployee->setEnabled(false);
+    connect(actionRemoveEmployee,
+            &QAction::triggered,
+            this,
+            &MainWindow::removeEmployee);
+
 
     // Edit menu (Undo/redo)
-    menuEdit->addSeparator();
-    actionUndo = menuEdit->addAction(tr("&Undo"), this, &MainWindow::undo);
+    actionUndo = undoStack->createUndoAction(this, tr("&Undo"));
     actionUndo->setShortcut(QKeySequence::Undo);
     actionUndo->setEnabled(false);
 
-    actionRedo = menuEdit->addAction(tr("&Redo"), this, &MainWindow::redo);
+    actionRedo = undoStack->createRedoAction(this, tr("&Redo"));
     actionRedo->setShortcut(QKeySequence::Redo);
     actionRedo->setEnabled(false);
+}
+
+void MainWindow::createUndoView()
+{
+    undoView = new QUndoView(undoStack);
+    undoView->setWindowTitle(tr("Command List"));
+    undoView->show();
+    undoView->setAttribute(Qt::WA_QuitOnClose, false);
+}
+
+void MainWindow::createMenus()
+{
+    // File menu
+    QMenu *menuFile = menuBar()->addMenu(tr("&File"));
+    menuFile->addAction(actionOpen);
+    menuFile->addAction(actionSaveAs);
+    menuFile->addAction(actionClose);
+
+    // Edit menu
+    menuEdit = menuBar()->addMenu(tr("&Edit"));
+    menuEdit->setEnabled(false);
+    menuEdit->addAction(actionAddDepartment);
+    menuEdit->addAction(actionRemoveDepartment);
+    menuEdit->addAction(actionAddEmployee);
+    menuEdit->addAction(actionRemoveEmployee);
+    menuEdit->addSeparator();
+    menuEdit->addAction(actionUndo);
+    menuEdit->addAction(actionRedo);
+    connect(menuEdit, &QMenu::aboutToShow, this, &MainWindow::updateActions);
 
     // Help menu
     QMenu *menuHelp = menuBar()->addMenu(tr("&Help"));
     menuHelp->addAction(tr("&About"), this, &MainWindow::about);
-
-    connect(menuEdit, &QMenu::aboutToShow, this, &MainWindow::updateActions);
 }

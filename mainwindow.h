@@ -10,9 +10,11 @@
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
-class QTreeView;
 class QAbstractItemModel;
 class QFile;
+class QTreeView;
+class QUndoStack;
+class QUndoView;
 QT_END_NAMESPACE
 
 class MainWindow : public QMainWindow
@@ -56,19 +58,20 @@ private slots:
     void addEmployee();
     void removeEmployee();
 
-    void undo();
-    void redo();
-
     void about();
 
 private:
 
     void createActions();
+    void createUndoView();
+    void createMenus();
 
 private:
 
     Ui::MainWindow *ui;
     QTreeView *treeView;
+    QUndoView *undoView;
+    QUndoStack *undoStack;
 
     QAction *actionOpen;
     QAction *actionSaveAs;
