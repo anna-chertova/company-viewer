@@ -4,10 +4,11 @@
  */
 
 #include "companydatamodel.h"
+#include "commands.h"
 
 CompanyDataModel::CompanyDataModel(QObject *parent): QAbstractItemModel(parent)
 {
-
+    undoStack = new QUndoStack(this);
 }
 
 CompanyDataModel::~CompanyDataModel()
@@ -120,17 +121,9 @@ bool CompanyDataModel::setData(const QModelIndex &index,
     Q_ASSERT(item != nullptr);
     Q_ASSERT(flags(index) && Qt::ItemIsEditable);
 
-    bool success = item->setData(index.column(), value);
+    undoStack->push(new ChangeDataCommand(item, index.column(), value, this));
 
-    if(success) {
-        // if employee salary has changed then recalculate avg salary for current department
-        if(item->parent() && index.column() == EmployeeSalary)
-            updateDepartmentData(item->parent());
-
-        emit dataChanged(index, index, {Qt::DisplayRole, Qt::EditRole});
-    }
-
-    return success;
+    return true;
 }
 
 QVariant CompanyDataModel::headerData(int section,
@@ -181,17 +174,7 @@ bool CompanyDataModel::insertRows(int position,
 {
     if(!parent.isValid())
     {
-        // add department row
-        std::vector<DataItem*> newDepartments;
-        for(int i = 0; i < rows; ++i) {
-            newDepartments.push_back(createEmptyDepartment());
-        }
-        beginInsertRows(parent, position, position + rows - 1);
-        departmentItems.insert(
-                    departmentItems.begin() + position,
-                    newDepartments.begin(),
-                    newDepartments.end());
-        endInsertRows();
+        undoStack->push(new AddDepartmentCommand(position, rows, this));
         return true;
     }
 
@@ -200,14 +183,8 @@ bool CompanyDataModel::insertRows(int position,
     if (!parentItem)
        return false;
 
-    beginInsertRows(parent, position, position + rows - 1);
-    const bool success = parentItem->insertChildren(position,
-                                                    rows,
-                                                    ColumnCount);
-    endInsertRows();
-
-    updateDepartmentData(parentItem);
-    return success;
+    undoStack->push(new AddEmployeeCommand(parentItem, position, rows, this));
+    return true;
 }
 
 bool CompanyDataModel::removeRows(int position,
@@ -219,24 +196,7 @@ bool CompanyDataModel::removeRows(int position,
     }
 
     if(!parent.isValid()) { // department(s) is(are) removed
-
-        // remove all employees inside departments being removed
-        for(int i = 0; i < rows; ++i) {
-            DataItem *departmentItem = departmentItems.at(position + i);
-            beginRemoveRows(parent, 0, rows - 1);
-            departmentItem->removeChildren(0, rows);
-            endRemoveRows();
-        }
-
-        // remove department
-        beginRemoveRows(QModelIndex(), position, position + rows - 1);
-        for(int i = 0; i < rows; ++i) {
-            delete departmentItems.at(position + i);
-        }
-        departmentItems.erase(
-                    departmentItems.begin() + position,
-                    departmentItems.begin() + position + rows);
-        endRemoveRows();
+        undoStack->push(new DeleteDepartmentCommand(position, rows, this));
         return true;
     }
 
@@ -246,13 +206,8 @@ bool CompanyDataModel::removeRows(int position,
         return false;
     }
 
-    beginRemoveRows(parent, position, position + rows - 1);
-    const bool success = parentItem->removeChildren(position, rows);
-    endRemoveRows();
-
-    updateDepartmentData(parentItem);
-
-    return success;
+    undoStack->push(new DeleteEmployeeCommand(parentItem, position, rows, this));
+    return true;
 }
 
 void CompanyDataModel::addDepartment(Department department)
@@ -264,21 +219,20 @@ void CompanyDataModel::addDepartment(Department department)
 
         Employee employee = department.employees[i];
 
-        if (departmentItem->insertChildren(
+        departmentItem->insertChildren(
                     departmentItem->childCount(),
                     1,
-                    ColumnCount)) {
+                    ColumnCount);
 
-            DataItem *employeeItem = departmentItem->child(
-                        departmentItem->childCount() - 1);
-            employeeItem->setData(DepartmentName, "");
-            employeeItem->setData(DepartmentNumEmployees, "");
-            employeeItem->setData(EmployeeSurname, employee.surname);
-            employeeItem->setData(EmployeeName, employee.name);
-            employeeItem->setData(EmployeeMiddleName, employee.middlename);
-            employeeItem->setData(EmployeePosition, employee.position);
-            employeeItem->setData(EmployeeSalary, employee.salary);
-        }
+        DataItem *employeeItem = departmentItem->child(
+                    departmentItem->childCount() - 1);
+        employeeItem->setData(DepartmentName, "");
+        employeeItem->setData(DepartmentNumEmployees, "");
+        employeeItem->setData(EmployeeSurname, employee.surname);
+        employeeItem->setData(EmployeeName, employee.name);
+        employeeItem->setData(EmployeeMiddleName, employee.middlename);
+        employeeItem->setData(EmployeePosition, employee.position);
+        employeeItem->setData(EmployeeSalary, employee.salary);
     }
 
     departmentItems.push_back(departmentItem);
@@ -310,6 +264,11 @@ Department CompanyDataModel::getDepartment(int n) const
     }
 
     return department;
+}
+
+QUndoStack *CompanyDataModel::getUndoStack() const
+{
+    return undoStack;
 }
 
 void CompanyDataModel::clear()
@@ -350,4 +309,12 @@ void CompanyDataModel::updateDepartmentData(DataItem *departmentItem)
     }
     departmentItem->setData(DepartmentNumEmployees, numEmployees);
     departmentItem->setData(EmployeeSalary, avgSalary);
+}
+
+int CompanyDataModel::getRowNumber(DataItem *departmentItem)
+{
+    auto offset = std::find(departmentItems.begin(),
+                            departmentItems.end(),
+                            departmentItem);
+    return std::distance(departmentItems.begin(), offset);
 }

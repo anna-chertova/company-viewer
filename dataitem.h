@@ -27,16 +27,16 @@ public:
     // adds children items in the specified position
     // number of children = count,
     // number of data columns added = columns
-    bool insertChildren(int position, int count, int columns);
+    void insertChildren(int position, int count, int columns);
     // returns parent of the current item
     DataItem *parent();
     // removes children from the position
     // number of children to be removed = count
-    bool removeChildren(int position, int count);
+    void removeChildren(int position, int count);
     // returns position of the current item against its siblings
     int childNumber() const;
-    // modifies item's data int specified columnt with specified value
-    bool setData(int column, const QVariant &value);
+    // modifies item's data int specified column with specified value
+    void setData(int column, const QVariant &value);
 
 private:
 

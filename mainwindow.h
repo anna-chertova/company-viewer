@@ -10,7 +10,7 @@
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
-class QAbstractItemModel;
+class CompanyDataModel;
 class QFile;
 class QTreeView;
 class QUndoStack;
@@ -23,10 +23,8 @@ class MainWindow : public QMainWindow
 
 public:
 
-    MainWindow(QWidget *parent = nullptr);
+    MainWindow(CompanyDataModel *model, QWidget *parent = nullptr);
     ~MainWindow();
-
-    void setModel(QAbstractItemModel *model);
 
 protected:
 
@@ -71,7 +69,7 @@ private:
     Ui::MainWindow *ui;
     QTreeView *treeView;
     QUndoView *undoView;
-    QUndoStack *undoStack;
+    CompanyDataModel *dataModel;
 
     QAction *actionOpen;
     QAction *actionSaveAs;

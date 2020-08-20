@@ -9,19 +9,25 @@
 #include <QMessageBox>
 #include <QStandardPaths>
 #include <QTreeView>
-#include <QUndoStack>
 #include <QUndoView>
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "commands.h"
+#include "companydatamodel.h"
 
-MainWindow::MainWindow(QWidget *parent)
+MainWindow::MainWindow(CompanyDataModel *model, QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
-    , treeView(new QTreeView(this))    
+    , treeView(new QTreeView(this))
+    , dataModel(model)
 {
     ui->setupUi(this);
 
-    undoStack = new QUndoStack(this);
+    treeView->setModel(dataModel);
+    connect(treeView->selectionModel(), &QItemSelectionModel::selectionChanged,
+                this, &MainWindow::updateActions);
+    updateView();
+    updateActions();
 
     createActions();
     createUndoView();
@@ -32,15 +38,6 @@ MainWindow::MainWindow(QWidget *parent)
 MainWindow::~MainWindow()
 {
 
-}
-
-void MainWindow::setModel(QAbstractItemModel *model)
-{
-    treeView->setModel(model);
-    connect(treeView->selectionModel(), &QItemSelectionModel::selectionChanged,
-                this, &MainWindow::updateActions);
-    updateView();
-    updateActions();
 }
 
 #ifndef QT_NO_CONTEXTMENU
@@ -163,7 +160,7 @@ void MainWindow::addDepartment()
     if (!model->insertRow(index.row() + 1, parentIndex))
         return;
 
-    updateActions();
+    //updateActions();
 
     const QModelIndex child = model->index(index.row() + 1, 0, parentIndex);
     model->setData(child, QVariant(tr("[Enter name]")), Qt::EditRole);
@@ -177,7 +174,7 @@ void MainWindow::removeDepartment()
     QAbstractItemModel *model = treeView->model();
     if (!model->removeRow(index.row(), index.parent()))
         return;
-    updateActions();
+    //updateActions();
     updateView();
 }
 
@@ -200,7 +197,7 @@ void MainWindow::addEmployee()
     if (!model->insertRow(childRow, parentIndex))
         return;
 
-    updateActions();
+    //updateActions();
 
     model->setData(
                 model->index(childRow, 2, parentIndex),
@@ -233,7 +230,7 @@ void MainWindow::removeEmployee()
     if (!model->removeRow(index.row(), index.parent()))
         return;
 
-    updateActions();
+    //updateActions();
     updateView();
 }
 
@@ -301,20 +298,21 @@ void MainWindow::createActions()
 
 
     // Edit menu (Undo/redo)
-    actionUndo = undoStack->createUndoAction(this, tr("&Undo"));
+    actionUndo = dataModel->getUndoStack()->createUndoAction(this, tr("&Undo"));
     actionUndo->setShortcut(QKeySequence::Undo);
     actionUndo->setEnabled(false);
 
-    actionRedo = undoStack->createRedoAction(this, tr("&Redo"));
+    actionRedo = dataModel->getUndoStack()->createRedoAction(this, tr("&Redo"));
     actionRedo->setShortcut(QKeySequence::Redo);
     actionRedo->setEnabled(false);
 }
 
 void MainWindow::createUndoView()
 {
-    undoView = new QUndoView(undoStack);
+    /// TODO: how this window is used???
+    undoView = new QUndoView();
     undoView->setWindowTitle(tr("Command List"));
-    undoView->show();
+    //undoView->show();
     undoView->setAttribute(Qt::WA_QuitOnClose, false);
 }
 

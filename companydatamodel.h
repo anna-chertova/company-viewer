@@ -6,14 +6,22 @@
 #ifndef COMPANYDATAMODEL_H
 #define COMPANYDATAMODEL_H
 
+#include <QAbstractItemModel>
+#include <QUndoStack>
+
 #include "department.h"
 #include "dataitem.h"
-#include <QAbstractItemModel>
 
 class CompanyDataModel : public QAbstractItemModel
 {
 
     Q_OBJECT
+
+    friend class ChangeDataCommand;
+    friend class AddDepartmentCommand;
+    friend class AddEmployeeCommand;
+    friend class DeleteDepartmentCommand;
+    friend class DeleteEmployeeCommand;
 
 public:
 
@@ -53,6 +61,8 @@ public:
     int getNumDepartments() const;
     Department getDepartment(int n) const;
 
+    QUndoStack *getUndoStack() const;
+
 public slots:
 
     // clear data e.g. when the file is closed
@@ -67,6 +77,8 @@ private:
     // re-calculates department data (employee number & average salary)
     // needed when employee is added/removed/changed
     void updateDepartmentData(DataItem *departmentItem);
+
+    int getRowNumber(DataItem *departmentItem);
 
 private:
 
@@ -84,6 +96,8 @@ private:
     };
 
     std::vector<DataItem*> departmentItems;
+
+    QUndoStack *undoStack;
 
 };
 
