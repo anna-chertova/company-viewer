@@ -9,6 +9,7 @@
 #include <QUndoCommand>
 #include "companydatamodel.h"
 #include "dataitem.h"
+#include "department.h"
 
 class ChangeDataCommand: public QUndoCommand
 {
@@ -69,6 +70,7 @@ private:
 
     int position;
     int num;
+    std::vector<Department> departmentData;
     CompanyDataModel *dataModel;
 };
 
@@ -85,6 +87,7 @@ private:
     DataItem *parentItem;
     int position;
     int num;
+    std::vector<Employee> employeeData;
     CompanyDataModel *dataModel;
 };
 

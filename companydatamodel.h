@@ -72,7 +72,13 @@ public slots:
 private:
 
     // creates empty department item and fills it with default data
-    DataItem *createEmptyDepartment();
+    DataItem *createEmptyDepartmentItem();
+
+    Department createDepartment(DataItem *departmentItem) const;
+    void fillDepartmentItem(DataItem *departmentItem, Department department);
+
+    Employee createEmployee(DataItem *employeeItem) const;
+    void fillEmployeeItem(DataItem* employeeItem, Employee employee);
 
     // re-calculates department data (employee number & average salary)
     // needed when employee is added/removed/changed

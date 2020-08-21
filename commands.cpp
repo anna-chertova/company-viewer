@@ -67,7 +67,7 @@ void AddDepartmentCommand::redo()
     // add department rows
     std::vector<DataItem*> newDepartments;
     for(int i = 0; i < num; ++i) {
-        newDepartments.push_back(dataModel->createEmptyDepartment());
+        newDepartments.push_back(dataModel->createEmptyDepartmentItem());
     }
     dataModel->beginInsertRows(QModelIndex(), position, position + num - 1);
     dataModel->departmentItems.insert(
@@ -120,15 +120,27 @@ void AddEmployeeCommand::redo()
 DeleteDepartmentCommand::DeleteDepartmentCommand(int pos, int n, CompanyDataModel *model)
     : QUndoCommand(), position(pos), num(n), dataModel(model)
 {
-    setText("Delete Department item");
+    // Save data being removed
+    for (int i = 0; i < 0; ++i)
+    {
+        departmentData.push_back(dataModel->createDepartment(
+                                     dataModel->departmentItems.at(pos + i)));
+    }
+
+    if (n == 1)
+        setText("Delete Department item");
+    else
+        setText("Delete Department items");
 }
 
 void DeleteDepartmentCommand::undo()
 {
-    // add department rows
+    // restore department rows
     std::vector<DataItem*> newDepartments;
     for(int i = 0; i < num; ++i) {
-        newDepartments.push_back(dataModel->createEmptyDepartment());
+        DataItem *departmentItem = dataModel->createEmptyDepartmentItem();
+        //dataModel->fillDepartmentItem(departmentItem, departmentData[i]);
+        newDepartments.push_back(departmentItem);
     }
     dataModel->beginInsertRows(QModelIndex(), position, position + num - 1);
     dataModel->departmentItems.insert(
@@ -164,7 +176,15 @@ void DeleteDepartmentCommand::redo()
 DeleteEmployeeCommand::DeleteEmployeeCommand(DataItem *parent, int pos, int n, CompanyDataModel *model)
     : QUndoCommand(), parentItem(parent), position(pos), num(n), dataModel(model)
 {
-    setText("Delete Employee item");
+    // Save data being removed
+    for(int i = 0; i < num; ++i) {
+        employeeData.push_back(dataModel->createEmployee(parent->child(pos + i)));
+    }
+
+    if (n == 1)
+        setText("Delete Employee item");
+    else
+        setText("Delete Employee items");
 }
 
 void DeleteEmployeeCommand::undo()
@@ -178,6 +198,12 @@ void DeleteEmployeeCommand::undo()
     dataModel->beginInsertRows(parentIndex, position, position + num - 1);
     parentItem->insertChildren(position, num, CompanyDataModel::ColumnCount);
     dataModel->endInsertRows();
+
+    for (int i = 0; i < num; ++i)
+    {
+        DataItem *child = parentItem->child(position + i);
+        dataModel->fillEmployeeItem(child, employeeData[i]);
+    }
 
     dataModel->updateDepartmentData(parentItem);
 }
