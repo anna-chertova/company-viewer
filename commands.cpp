@@ -12,7 +12,7 @@ ChangeDataCommand::ChangeDataCommand(DataItem *i,
     : QUndoCommand(), item(i), column(col), newValue(val), dataModel(model)
 {
     oldValue = item->data(col);
-    setText("Edit item");
+    setText("Change item data");
 }
 
 void ChangeDataCommand::undo()

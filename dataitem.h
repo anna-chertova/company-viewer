@@ -33,8 +33,6 @@ public:
     // removes children from the position
     // number of children to be removed = count
     void removeChildren(int position, int count);
-    // returns position of the current item against its siblings
-    int childNumber() const;
     // modifies item's data int specified column with specified value
     void setData(int column, const QVariant &value);
 

@@ -72,17 +72,6 @@ void DataItem::removeChildren(int position, int count)
                 childItems.begin() + position + count);
 }
 
-int DataItem::childNumber() const
-{
-    if (parentItem) {
-        auto childOffset = std::find(parentItem->childItems.begin(),
-                                     parentItem->childItems.end(),
-                                     this);
-        return std::distance(parentItem->childItems.begin(), childOffset);
-    }
-    return 0;
-}
-
 void DataItem::setData(int column, const QVariant &value)
 {
     if (column < 0 || column >= static_cast<int>(valueItems.size()))

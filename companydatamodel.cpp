@@ -55,7 +55,7 @@ QModelIndex CompanyDataModel::parent(const QModelIndex &child) const
         DataItem *departmentItem = employeeItem->parent();
         if (departmentItem) {
             return createIndex(
-                        departmentItem->childNumber(),
+                        getRowNumber(departmentItem),
                         0,
                         departmentItem);
         }
@@ -311,8 +311,9 @@ void CompanyDataModel::updateDepartmentData(DataItem *departmentItem)
     departmentItem->setData(EmployeeSalary, avgSalary);
 }
 
-int CompanyDataModel::getRowNumber(DataItem *departmentItem)
+int CompanyDataModel::getRowNumber(DataItem *departmentItem) const
 {
+    Q_ASSERT(departmentItem->parent() == nullptr);
     auto offset = std::find(departmentItems.begin(),
                             departmentItems.end(),
                             departmentItem);

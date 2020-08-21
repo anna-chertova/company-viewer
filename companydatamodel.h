@@ -78,7 +78,7 @@ private:
     // needed when employee is added/removed/changed
     void updateDepartmentData(DataItem *departmentItem);
 
-    int getRowNumber(DataItem *departmentItem);
+    int getRowNumber(DataItem *departmentItem) const;
 
 private:
 
