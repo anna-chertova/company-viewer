@@ -121,7 +121,7 @@ DeleteDepartmentCommand::DeleteDepartmentCommand(int pos, int n, CompanyDataMode
     : QUndoCommand(), position(pos), num(n), dataModel(model)
 {
     // Save data being removed
-    for (int i = 0; i < 0; ++i)
+    for (int i = 0; i < n; ++i)
     {
         departmentData.push_back(dataModel->createDepartment(
                                      dataModel->departmentItems.at(pos + i)));
@@ -139,7 +139,8 @@ void DeleteDepartmentCommand::undo()
     std::vector<DataItem*> newDepartments;
     for(int i = 0; i < num; ++i) {
         DataItem *departmentItem = dataModel->createEmptyDepartmentItem();
-        //dataModel->fillDepartmentItem(departmentItem, departmentData[i]);
+        Q_ASSERT(i < static_cast<int>(departmentData.size()));
+        dataModel->fillDepartmentItem(departmentItem, departmentData[i]);
         newDepartments.push_back(departmentItem);
     }
     dataModel->beginInsertRows(QModelIndex(), position, position + num - 1);
@@ -155,7 +156,8 @@ void DeleteDepartmentCommand::redo()
     // remove all employees inside departments being removed
     for(int i = 0; i < num; ++i) {
         DataItem *departmentItem = dataModel->departmentItems.at(position + i);
-        dataModel->beginRemoveRows(QModelIndex(), 0, num - 1);
+        const QModelIndex departmentIndex = dataModel->index(position + i, 0, QModelIndex());
+        dataModel->beginRemoveRows(departmentIndex, 0, num - 1);
         departmentItem->removeChildren(0, num);
         dataModel->endRemoveRows();
     }
@@ -201,6 +203,7 @@ void DeleteEmployeeCommand::undo()
 
     for (int i = 0; i < num; ++i)
     {
+        Q_ASSERT(i < static_cast<int>(employeeData.size()));
         DataItem *child = parentItem->child(position + i);
         dataModel->fillEmployeeItem(child, employeeData[i]);
     }
