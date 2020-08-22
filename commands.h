@@ -14,14 +14,16 @@
 class ChangeDataCommand: public QUndoCommand
 {
 public:
-    ChangeDataCommand(DataItem *i, int col, const QVariant &val, CompanyDataModel *model);
+    ChangeDataCommand(int dRow, int eRow, int col, const QVariant &newVal,
+                      const QVariant &oldVal, CompanyDataModel *model);
 
     void undo() override;
     void redo() override;
 
 private:
 
-    DataItem *item;
+    int departmentRow;
+    int employeeRow;
     int column;
     QVariant newValue, oldValue;
     CompanyDataModel *dataModel;
@@ -45,14 +47,14 @@ private:
 class AddEmployeeCommand : public QUndoCommand
 {
 public:
-    AddEmployeeCommand(DataItem *parent, int pos, int n, CompanyDataModel *model);
+    AddEmployeeCommand(int dRow, int pos, int n, CompanyDataModel *model);
 
     void undo() override;
     void redo() override;
 
 private:
 
-    DataItem *parentItem;
+    int departmentRow;
     int position;
     int num;
     CompanyDataModel *dataModel;
@@ -77,14 +79,14 @@ private:
 class DeleteEmployeeCommand : public QUndoCommand
 {
 public:
-    DeleteEmployeeCommand(DataItem *parent, int pos, int n, CompanyDataModel *model);
+    DeleteEmployeeCommand(int dRow, int pos, int n, CompanyDataModel *model);
 
     void undo() override;
     void redo() override;
 
 private:
 
-    DataItem *parentItem;
+    int departmentRow;
     int position;
     int num;
     std::vector<Employee> employeeData;

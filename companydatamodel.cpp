@@ -121,7 +121,15 @@ bool CompanyDataModel::setData(const QModelIndex &index,
     Q_ASSERT(item != nullptr);
     Q_ASSERT(flags(index) && Qt::ItemIsEditable);
 
-    undoStack->push(new ChangeDataCommand(item, index.column(), value, this));
+    int departmentRow = index.row();
+    int employeeRow = -1;
+
+    if(index.parent().isValid()) {
+        departmentRow = index.parent().row();
+        employeeRow = index.row();
+    }
+
+    undoStack->push(new ChangeDataCommand(departmentRow, employeeRow, index.column(), index.data(Qt::DisplayRole), value, this));
 
     return true;
 }
@@ -179,11 +187,7 @@ bool CompanyDataModel::insertRows(int position,
     }
 
     // add employee row
-    DataItem *parentItem = static_cast<DataItem*>(parent.internalPointer());
-    if (!parentItem)
-       return false;
-
-    undoStack->push(new AddEmployeeCommand(parentItem, position, rows, this));
+    undoStack->push(new AddEmployeeCommand(parent.row(), position, rows, this));
     return true;
 }
 
@@ -201,12 +205,7 @@ bool CompanyDataModel::removeRows(int position,
     }
 
     // employee(s) is (are) removed
-    DataItem *parentItem = static_cast<DataItem*>(parent.internalPointer());
-    if (!parentItem) {
-        return false;
-    }
-
-    undoStack->push(new DeleteEmployeeCommand(parentItem, position, rows, this));
+    undoStack->push(new DeleteEmployeeCommand(parent.row(), position, rows, this));
     return true;
 }
 

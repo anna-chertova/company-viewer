@@ -5,32 +5,54 @@
 
 #include "commands.h"
 
-ChangeDataCommand::ChangeDataCommand(DataItem *i,
-                                     int col,
-                                     const QVariant& val,
+ChangeDataCommand::ChangeDataCommand(int dRow, int eRow, int col,
+                                     const QVariant &newVal,
+                                     const QVariant &oldVal,
                                      CompanyDataModel *model)
-    : QUndoCommand(), item(i), column(col), newValue(val), dataModel(model)
+    : QUndoCommand(), departmentRow(dRow), employeeRow(eRow),
+      column(col), newValue(newVal), oldValue(oldVal), dataModel(model)
 {
-    oldValue = item->data(col);
     setText("Change item data");
 }
 
 void ChangeDataCommand::undo()
 {
-    item->setData(column, oldValue);
-
-    // if employee salary has changed then recalculate avg salary for current department
-    if(item->parent() && column == CompanyDataModel::EmployeeSalary)
-        dataModel->updateDepartmentData(item->parent());
+    Q_ASSERT(departmentRow >=0 );
+    Q_ASSERT(departmentRow < static_cast<int>(dataModel->departmentItems.size()));
+    DataItem *departmentItem = dataModel->departmentItems.at(departmentRow);
+    if (employeeRow >=0)
+    {
+        Q_ASSERT(employeeRow < departmentItem->childCount());
+        DataItem *employeeItem = departmentItem->child(employeeRow);
+        employeeItem->setData(column, oldValue);
+        // if employee salary has changed then recalculate avg salary for current department
+        if(column == CompanyDataModel::EmployeeSalary)
+            dataModel->updateDepartmentData(departmentItem);
     }
+    else
+    {
+        departmentItem->setData(column, oldValue);
+    }
+}
 
 void ChangeDataCommand::redo()
 {
-    item->setData(column, newValue);
-
-    // if employee salary has changed then recalculate avg salary for current department
-    if(item->parent() && column == CompanyDataModel::EmployeeSalary)
-        dataModel->updateDepartmentData(item->parent());
+    Q_ASSERT(departmentRow >=0 );
+    Q_ASSERT(departmentRow < static_cast<int>(dataModel->departmentItems.size()));
+    DataItem *departmentItem = dataModel->departmentItems.at(departmentRow);
+    if (employeeRow >=0)
+    {
+        Q_ASSERT(employeeRow < departmentItem->childCount());
+        DataItem *employeeItem = departmentItem->child(employeeRow);
+        employeeItem->setData(column, newValue);
+        // if employee salary has changed then recalculate avg salary for current department
+        if(column == CompanyDataModel::EmployeeSalary)
+            dataModel->updateDepartmentData(departmentItem);
+    }
+    else
+    {
+        departmentItem->setData(column, newValue);
+    }
 }
 
 /*************************************************************************************************/
@@ -85,8 +107,8 @@ void AddDepartmentCommand::redo()
 
 /*************************************************************************************************/
 
-AddEmployeeCommand::AddEmployeeCommand(DataItem *parent, int pos, int n, CompanyDataModel *model)
-    : QUndoCommand(), parentItem(parent), position(pos), num(n), dataModel(model)
+AddEmployeeCommand::AddEmployeeCommand(int dRow, int pos, int n, CompanyDataModel *model)
+    : QUndoCommand(), departmentRow(dRow), position(pos), num(n), dataModel(model)
 {
     if (n == 1)
         setText("Add Employee item");
@@ -96,6 +118,9 @@ AddEmployeeCommand::AddEmployeeCommand(DataItem *parent, int pos, int n, Company
 
 void AddEmployeeCommand::undo()
 {
+    Q_ASSERT(departmentRow >= 0);
+    Q_ASSERT(departmentRow < static_cast<int>(dataModel->departmentItems.size()));
+    DataItem *parentItem = dataModel->departmentItems.at(departmentRow);
     QModelIndex parentIndex = dataModel->index(
                 dataModel->getRowNumber(parentItem),
                 0,
@@ -111,6 +136,9 @@ void AddEmployeeCommand::undo()
 
 void AddEmployeeCommand::redo()
 {
+    Q_ASSERT(departmentRow >= 0);
+    Q_ASSERT(departmentRow < static_cast<int>(dataModel->departmentItems.size()));
+    DataItem *parentItem = dataModel->departmentItems.at(departmentRow);
     QModelIndex parentIndex = dataModel->index(
                 dataModel->getRowNumber(parentItem),
                 0,
@@ -193,12 +221,15 @@ void DeleteDepartmentCommand::redo()
 
 /*************************************************************************************************/
 
-DeleteEmployeeCommand::DeleteEmployeeCommand(DataItem *parent, int pos, int n, CompanyDataModel *model)
-    : QUndoCommand(), parentItem(parent), position(pos), num(n), dataModel(model)
+DeleteEmployeeCommand::DeleteEmployeeCommand(int dRow, int pos, int n, CompanyDataModel *model)
+    : QUndoCommand(), departmentRow(dRow), position(pos), num(n), dataModel(model)
 {
+    Q_ASSERT(departmentRow >= 0);
+    Q_ASSERT(departmentRow < static_cast<int>(dataModel->departmentItems.size()));
+    DataItem *parentItem = dataModel->departmentItems.at(departmentRow);
     // Save data being removed
     for(int i = 0; i < num; ++i) {
-        employeeData.push_back(dataModel->createEmployee(parent->child(pos + i)));
+        employeeData.push_back(dataModel->createEmployee(parentItem->child(pos + i)));
     }
 
     if (n == 1)
@@ -209,6 +240,10 @@ DeleteEmployeeCommand::DeleteEmployeeCommand(DataItem *parent, int pos, int n, C
 
 void DeleteEmployeeCommand::undo()
 {
+    Q_ASSERT(departmentRow >= 0);
+    Q_ASSERT(departmentRow < static_cast<int>(dataModel->departmentItems.size()));
+    DataItem *parentItem = dataModel->departmentItems.at(departmentRow);
+
     QModelIndex parentIndex = dataModel->index(
                 dataModel->getRowNumber(parentItem),
                 0,
@@ -231,6 +266,10 @@ void DeleteEmployeeCommand::undo()
 
 void DeleteEmployeeCommand::redo()
 {
+    Q_ASSERT(departmentRow >= 0);
+    Q_ASSERT(departmentRow < static_cast<int>(dataModel->departmentItems.size()));
+    DataItem *parentItem = dataModel->departmentItems.at(departmentRow);
+
     QModelIndex parentIndex = dataModel->index(
                 dataModel->getRowNumber(parentItem),
                 0,
