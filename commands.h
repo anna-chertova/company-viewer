@@ -39,6 +39,7 @@ private:
 
     int position;
     int num;
+    std::vector<Department> departmentData;
     CompanyDataModel *dataModel;
 };
 
@@ -55,6 +56,7 @@ private:
     DataItem *parentItem;
     int position;
     int num;
+    std::vector<Employee> employeeData;
     CompanyDataModel *dataModel;
 };
 

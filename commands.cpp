@@ -38,7 +38,17 @@ void ChangeDataCommand::redo()
 AddDepartmentCommand::AddDepartmentCommand(int pos, int n, CompanyDataModel *model)
     : QUndoCommand(), position(pos), num(n), dataModel(model)
 {
-    setText("Add Department item");
+    // Save data being added (for redoing after undo)
+    for (int i = 0; i < n; ++i)
+    {
+        departmentData.push_back(dataModel->createDepartment(
+                                     dataModel->departmentItems.at(pos + i)));
+    }
+
+    if (n == 1)
+        setText("Add Department item");
+    else
+        setText("Add Department items");
 }
 
 void AddDepartmentCommand::undo()
@@ -67,8 +77,12 @@ void AddDepartmentCommand::redo()
     // add department rows
     std::vector<DataItem*> newDepartments;
     for(int i = 0; i < num; ++i) {
-        newDepartments.push_back(dataModel->createEmptyDepartmentItem());
+        DataItem *departmentItem = dataModel->createEmptyDepartmentItem();
+        Q_ASSERT(i < static_cast<int>(departmentData.size()));
+        dataModel->fillDepartmentItem(departmentItem, departmentData[i]);
+        newDepartments.push_back(departmentItem);
     }
+
     dataModel->beginInsertRows(QModelIndex(), position, position + num - 1);
     dataModel->departmentItems.insert(
                 dataModel->departmentItems.begin() + position,
@@ -82,7 +96,15 @@ void AddDepartmentCommand::redo()
 AddEmployeeCommand::AddEmployeeCommand(DataItem *parent, int pos, int n, CompanyDataModel *model)
     : QUndoCommand(), parentItem(parent), position(pos), num(n), dataModel(model)
 {
-    setText("Add Employee item");
+    // Save data being added (for redoing after undo)
+    for(int i = 0; i < num; ++i) {
+        employeeData.push_back(dataModel->createEmployee(parent->child(pos + i)));
+    }
+
+    if (n == 1)
+        setText("Add Employee item");
+    else
+        setText("Add Employee items");
 }
 
 void AddEmployeeCommand::undo()
@@ -111,6 +133,13 @@ void AddEmployeeCommand::redo()
     dataModel->beginInsertRows(parentIndex, position, position + num - 1);
     parentItem->insertChildren(position, num, CompanyDataModel::ColumnCount);
     dataModel->endInsertRows();
+
+    for (int i = 0; i < num; ++i)
+    {
+        Q_ASSERT(i < static_cast<int>(employeeData.size()));
+        DataItem *child = parentItem->child(position + i);
+        dataModel->fillEmployeeItem(child, employeeData[i]);
+    }
 
     dataModel->updateDepartmentData(parentItem);
 }
