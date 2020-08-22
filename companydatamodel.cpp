@@ -257,6 +257,7 @@ DataItem *CompanyDataModel::createEmptyDepartmentItem()
 {
     // create department with default values
     std::vector<QVariant> departmentValues;
+
     departmentValues.push_back("");
     departmentValues.push_back(0);
     departmentValues.push_back("");

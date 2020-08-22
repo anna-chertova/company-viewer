@@ -160,11 +160,6 @@ void MainWindow::addDepartment()
     if (!model->insertRow(index.row() + 1, parentIndex))
         return;
 
-    //updateActions();
-
-    const QModelIndex child = model->index(index.row() + 1, 0, parentIndex);
-    model->setData(child, QVariant(tr("[Enter name]")), Qt::EditRole);
-
     updateView();
 }
 
@@ -174,7 +169,6 @@ void MainWindow::removeDepartment()
     QAbstractItemModel *model = treeView->model();
     if (!model->removeRow(index.row(), index.parent()))
         return;
-    //updateActions();
     updateView();
 }
 
@@ -197,29 +191,6 @@ void MainWindow::addEmployee()
     if (!model->insertRow(childRow, parentIndex))
         return;
 
-    //updateActions();
-
-    model->setData(
-                model->index(childRow, 2, parentIndex),
-                QVariant(tr("[Enter surname]")),
-                Qt::EditRole);
-    model->setData(
-                model->index(childRow, 3, parentIndex),
-                QVariant(tr("[Enter name]")),
-                Qt::EditRole);
-    model->setData(
-                model->index(childRow, 4, parentIndex),
-                QVariant(tr("[Enter middlename]")),
-                Qt::EditRole);
-    model->setData(
-                model->index(childRow, 5, parentIndex),
-                QVariant(tr("[Enter position]")),
-                Qt::EditRole);
-    model->setData(
-                model->index(childRow, 6, parentIndex),
-                QVariant(tr("[Enter salary]")),
-                Qt::EditRole);
-
     updateView();
 }
 
@@ -230,7 +201,6 @@ void MainWindow::removeEmployee()
     if (!model->removeRow(index.row(), index.parent()))
         return;
 
-    //updateActions();
     updateView();
 }
 

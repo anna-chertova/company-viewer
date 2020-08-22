@@ -38,13 +38,6 @@ void ChangeDataCommand::redo()
 AddDepartmentCommand::AddDepartmentCommand(int pos, int n, CompanyDataModel *model)
     : QUndoCommand(), position(pos), num(n), dataModel(model)
 {
-    // Save data being added (for redoing after undo)
-    for (int i = 0; i < n; ++i)
-    {
-        departmentData.push_back(dataModel->createDepartment(
-                                     dataModel->departmentItems.at(pos + i)));
-    }
-
     if (n == 1)
         setText("Add Department item");
     else
@@ -78,8 +71,7 @@ void AddDepartmentCommand::redo()
     std::vector<DataItem*> newDepartments;
     for(int i = 0; i < num; ++i) {
         DataItem *departmentItem = dataModel->createEmptyDepartmentItem();
-        Q_ASSERT(i < static_cast<int>(departmentData.size()));
-        dataModel->fillDepartmentItem(departmentItem, departmentData[i]);
+        departmentItem->setData(CompanyDataModel::DepartmentName, "[Enter name]");
         newDepartments.push_back(departmentItem);
     }
 
@@ -96,11 +88,6 @@ void AddDepartmentCommand::redo()
 AddEmployeeCommand::AddEmployeeCommand(DataItem *parent, int pos, int n, CompanyDataModel *model)
     : QUndoCommand(), parentItem(parent), position(pos), num(n), dataModel(model)
 {
-    // Save data being added (for redoing after undo)
-    for(int i = 0; i < num; ++i) {
-        employeeData.push_back(dataModel->createEmployee(parent->child(pos + i)));
-    }
-
     if (n == 1)
         setText("Add Employee item");
     else
@@ -134,11 +121,13 @@ void AddEmployeeCommand::redo()
     parentItem->insertChildren(position, num, CompanyDataModel::ColumnCount);
     dataModel->endInsertRows();
 
-    for (int i = 0; i < num; ++i)
-    {
-        Q_ASSERT(i < static_cast<int>(employeeData.size()));
+    for (int i = 0; i < num; ++i) {
         DataItem *child = parentItem->child(position + i);
-        dataModel->fillEmployeeItem(child, employeeData[i]);
+        child->setData(CompanyDataModel::EmployeeSurname, "[Enter surname]");
+        child->setData(CompanyDataModel::EmployeeName, "[Enter name]");
+        child->setData(CompanyDataModel::EmployeeMiddleName, "[Enter middlename]");
+        child->setData(CompanyDataModel::EmployeePosition, "[Enter position]");
+        child->setData(CompanyDataModel::EmployeeSalary, "[Enter salary]");
     }
 
     dataModel->updateDepartmentData(parentItem);
