@@ -17,6 +17,8 @@ CompanyDataModel::~CompanyDataModel()
     departmentItems.clear();
 }
 
+/*****************************************************************************/
+
 QModelIndex CompanyDataModel::index(int row,
                                     int column,
                                     const QModelIndex &parent) const
@@ -129,7 +131,12 @@ bool CompanyDataModel::setData(const QModelIndex &index,
         employeeRow = index.row();
     }
 
-    undoStack->push(new ChangeDataCommand(departmentRow, employeeRow, index.column(), index.data(Qt::DisplayRole), value, this));
+    undoStack->push(new ChangeDataCommand(departmentRow,
+                                          employeeRow,
+                                          index.column(),
+                                          index.data(Qt::DisplayRole),
+                                          value,
+                                          this));
 
     return true;
 }
@@ -182,12 +189,16 @@ bool CompanyDataModel::insertRows(int position,
 {
     if(!parent.isValid())
     {
+        // add department row(s)
         undoStack->push(new AddDepartmentCommand(position, rows, this));
         return true;
     }
 
-    // add employee row
-    undoStack->push(new AddEmployeeCommand(parent.row(), position, rows, this));
+    // add employee row(s)
+    undoStack->push(new AddEmployeeCommand(parent.row(),
+                                           position,
+                                           rows,
+                                           this));
     return true;
 }
 
@@ -205,30 +216,20 @@ bool CompanyDataModel::removeRows(int position,
     }
 
     // employee(s) is (are) removed
-    undoStack->push(new DeleteEmployeeCommand(parent.row(), position, rows, this));
+    undoStack->push(new DeleteEmployeeCommand(parent.row(),
+                                              position,
+                                              rows,
+                                              this));
     return true;
 }
+
+/*****************************************************************************/
 
 void CompanyDataModel::addDepartment(Department department)
 {
     DataItem *departmentItem = createEmptyDepartmentItem();
-    departmentItem->setData(DepartmentName, department.name);
-
-    for(int i = 0; i < static_cast<int>(department.employees.size()); ++i) {
-
-        departmentItem->insertChildren(
-                    departmentItem->childCount(),
-                    1,
-                    ColumnCount);
-
-        DataItem *employeeItem = departmentItem->child(
-                    departmentItem->childCount() - 1);
-        fillEmployeeItem(employeeItem, department.employees[i]);
-    }
-
-    departmentItems.push_back(departmentItem);
-
-    updateDepartmentData(departmentItem);
+    fillDepartmentItem(departmentItem, department);
+    departmentItems.push_back(departmentItem);    
 }
 
 int CompanyDataModel::getNumDepartments() const
@@ -241,15 +242,20 @@ Department CompanyDataModel::getDepartment(int n) const
     return createDepartment(departmentItems.at(n));
 }
 
+/*****************************************************************************/
+
 QUndoStack *CompanyDataModel::getUndoStack() const
 {
     return undoStack;
 }
 
+/*****************************************************************************/
+
 void CompanyDataModel::clear()
 {
     // clear company data
     removeRows(0, departmentItems.size());
+    // clear undo stack
     undoStack->clear();
 }
 
@@ -257,6 +263,8 @@ void CompanyDataModel::onDataSaved()
 {
     undoStack->setClean();
 }
+
+/*****************************************************************************/
 
 DataItem *CompanyDataModel::createEmptyDepartmentItem()
 {
@@ -274,18 +282,8 @@ DataItem *CompanyDataModel::createEmptyDepartmentItem()
     return departmentItem;
 }
 
-Department CompanyDataModel::createDepartment(DataItem *departmentItem) const
-{
-    Department department;
-    department.name = departmentItem->data(DepartmentName).toString();
-
-    for(int i = 0; i < departmentItem->childCount(); ++i) {
-       department.employees.push_back(createEmployee(departmentItem->child(i)));
-    }
-    return department;
-}
-
-void CompanyDataModel::fillDepartmentItem(DataItem *departmentItem, Department department)
+void CompanyDataModel::fillDepartmentItem(DataItem *departmentItem,
+                                          Department department)
 {
     departmentItem->setData(DepartmentName, department.name);
 
@@ -304,6 +302,30 @@ void CompanyDataModel::fillDepartmentItem(DataItem *departmentItem, Department d
     updateDepartmentData(departmentItem);
 }
 
+Department CompanyDataModel::createDepartment(DataItem *departmentItem) const
+{
+    Department department;
+    department.name = departmentItem->data(DepartmentName).toString();
+
+    for(int i = 0; i < departmentItem->childCount(); ++i) {
+       department.employees.push_back(
+                   createEmployee(departmentItem->child(i)));
+    }
+    return department;
+}
+
+void CompanyDataModel::fillEmployeeItem(DataItem* employeeItem,
+                                        Employee employee)
+{
+    employeeItem->setData(DepartmentName, "");
+    employeeItem->setData(DepartmentNumEmployees, "");
+    employeeItem->setData(EmployeeSurname, employee.surname);
+    employeeItem->setData(EmployeeName, employee.name);
+    employeeItem->setData(EmployeeMiddleName, employee.middlename);
+    employeeItem->setData(EmployeePosition, employee.position);
+    employeeItem->setData(EmployeeSalary, employee.salary);
+}
+
 Employee CompanyDataModel::createEmployee(DataItem *employeeItem) const
 {
     Employee employee;
@@ -313,17 +335,6 @@ Employee CompanyDataModel::createEmployee(DataItem *employeeItem) const
     employee.position = employeeItem->data(EmployeePosition).toString();
     employee.salary = employeeItem->data(EmployeeSalary).toInt();
     return employee;
-}
-
-void CompanyDataModel::fillEmployeeItem(DataItem* employeeItem, Employee employee)
-{
-    employeeItem->setData(DepartmentName, "");
-    employeeItem->setData(DepartmentNumEmployees, "");
-    employeeItem->setData(EmployeeSurname, employee.surname);
-    employeeItem->setData(EmployeeName, employee.name);
-    employeeItem->setData(EmployeeMiddleName, employee.middlename);
-    employeeItem->setData(EmployeePosition, employee.position);
-    employeeItem->setData(EmployeeSalary, employee.salary);
 }
 
 void CompanyDataModel::updateDepartmentData(DataItem *departmentItem)
