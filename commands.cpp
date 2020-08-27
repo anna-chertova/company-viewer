@@ -1,8 +1,9 @@
 ﻿/*
  * (c) Anna Chertova 2020
- * Commands for undo/redo functionality
+ * Command objects stored in undo/redo stack
  */
 
+#include <QCoreApplication>
 #include "commands.h"
 
 ChangeDataCommand::ChangeDataCommand(int dRow, int eRow, int col,
@@ -12,20 +13,24 @@ ChangeDataCommand::ChangeDataCommand(int dRow, int eRow, int col,
     : QUndoCommand(), departmentRow(dRow), employeeRow(eRow),
       column(col), newValue(newVal), oldValue(oldVal), dataModel(model)
 {
-    setText("Change item data");
+    setText(QCoreApplication::translate("Undo/redo", "Change item data"));
 }
 
 void ChangeDataCommand::undo()
 {
     Q_ASSERT(departmentRow >=0 );
-    Q_ASSERT(departmentRow < static_cast<int>(dataModel->departmentItems.size()));
+    Q_ASSERT(departmentRow <
+             static_cast<int>(dataModel->departmentItems.size()));
+
     DataItem *departmentItem = dataModel->departmentItems.at(departmentRow);
     if (employeeRow >=0)
     {
         Q_ASSERT(employeeRow < departmentItem->childCount());
+
         DataItem *employeeItem = departmentItem->child(employeeRow);
         employeeItem->setData(column, oldValue);
-        // if employee salary has changed then recalculate avg salary for current department
+        // if employee salary has changed
+        // then recalculate avg salary for current department
         if(column == CompanyDataModel::EmployeeSalary)
             dataModel->updateDepartmentData(departmentItem);
     }
@@ -38,14 +43,18 @@ void ChangeDataCommand::undo()
 void ChangeDataCommand::redo()
 {
     Q_ASSERT(departmentRow >=0 );
-    Q_ASSERT(departmentRow < static_cast<int>(dataModel->departmentItems.size()));
+    Q_ASSERT(departmentRow <
+             static_cast<int>(dataModel->departmentItems.size()));
+
     DataItem *departmentItem = dataModel->departmentItems.at(departmentRow);
     if (employeeRow >=0)
     {
         Q_ASSERT(employeeRow < departmentItem->childCount());
+
         DataItem *employeeItem = departmentItem->child(employeeRow);
         employeeItem->setData(column, newValue);
-        // if employee salary has changed then recalculate avg salary for current department
+        // if employee salary has changed
+        // then recalculate avg salary for current department
         if(column == CompanyDataModel::EmployeeSalary)
             dataModel->updateDepartmentData(departmentItem);
     }
@@ -55,24 +64,31 @@ void ChangeDataCommand::redo()
     }
 }
 
-/*************************************************************************************************/
+/*****************************************************************************/
 
-AddDepartmentCommand::AddDepartmentCommand(int pos, int n, CompanyDataModel *model)
+AddDepartmentCommand::AddDepartmentCommand(int pos,
+                                           int n,
+                                           CompanyDataModel *model)
     : QUndoCommand(), position(pos), num(n), dataModel(model)
 {
     if (n == 1)
-        setText("Add Department item");
+        setText(QCoreApplication::translate("Undo/redo",
+                                            "Add Department item"));
     else
-        setText("Add Department items");
+        setText(QCoreApplication::translate("Undo/redo",
+                                            "Add Department items"));
 }
 
 void AddDepartmentCommand::undo()
 {
     // remove all employees inside departments being removed
     for(int i = 0; i < num; ++i) {
+
         DataItem *departmentItem = dataModel->departmentItems.at(position + i);
+
         int numEmployees = departmentItem->childCount();
         if (numEmployees) {
+
             dataModel->beginRemoveRows(QModelIndex(), 0, numEmployees - 1);
             departmentItem->removeChildren(0, numEmployees);
             dataModel->endRemoveRows();
@@ -92,11 +108,13 @@ void AddDepartmentCommand::undo()
 
 void AddDepartmentCommand::redo()
 {
-    // add department rows
+    // add default department rows
     std::vector<DataItem*> newDepartments;
     for(int i = 0; i < num; ++i) {
         DataItem *departmentItem = dataModel->createEmptyDepartmentItem();
-        departmentItem->setData(CompanyDataModel::DepartmentName, "[Enter name]");
+        departmentItem->setData(CompanyDataModel::DepartmentName,
+                                QCoreApplication::translate("Enter data",
+                                                            "[Enter name]"));
         newDepartments.push_back(departmentItem);
     }
 
@@ -108,26 +126,32 @@ void AddDepartmentCommand::redo()
     dataModel->endInsertRows();
 }
 
-/*************************************************************************************************/
+/*****************************************************************************/
 
-AddEmployeeCommand::AddEmployeeCommand(int dRow, int pos, int n, CompanyDataModel *model)
-    : QUndoCommand(), departmentRow(dRow), position(pos), num(n), dataModel(model)
+AddEmployeeCommand::AddEmployeeCommand(int dRow, int pos, int n,
+                                       CompanyDataModel *model)
+    : QUndoCommand(), departmentRow(dRow), position(pos), num(n),
+      dataModel(model)
 {
     if (n == 1)
-        setText("Add Employee item");
+        setText(QCoreApplication::translate("Undo/redo", "Add Employee item"));
     else
-        setText("Add Employee items");
+        setText(QCoreApplication::translate("Undo/redo",
+                                            "Add Employee items"));
 }
 
 void AddEmployeeCommand::undo()
 {
     Q_ASSERT(departmentRow >= 0);
-    Q_ASSERT(departmentRow < static_cast<int>(dataModel->departmentItems.size()));
+    Q_ASSERT(departmentRow <
+             static_cast<int>(dataModel->departmentItems.size()));
+
     DataItem *parentItem = dataModel->departmentItems.at(departmentRow);
     QModelIndex parentIndex = dataModel->index(
                 dataModel->getRowNumber(parentItem),
                 0,
-                QModelIndex());
+                QModelIndex());    
+
     Q_ASSERT(parentIndex.isValid());
 
     dataModel->beginRemoveRows(parentIndex, position, position + num - 1);
@@ -140,12 +164,15 @@ void AddEmployeeCommand::undo()
 void AddEmployeeCommand::redo()
 {
     Q_ASSERT(departmentRow >= 0);
-    Q_ASSERT(departmentRow < static_cast<int>(dataModel->departmentItems.size()));
+    Q_ASSERT(departmentRow <
+             static_cast<int>(dataModel->departmentItems.size()));
+
     DataItem *parentItem = dataModel->departmentItems.at(departmentRow);
     QModelIndex parentIndex = dataModel->index(
                 dataModel->getRowNumber(parentItem),
                 0,
                 QModelIndex());
+
     Q_ASSERT(parentIndex.isValid());
 
     dataModel->beginInsertRows(parentIndex, position, position + num - 1);
@@ -154,19 +181,31 @@ void AddEmployeeCommand::redo()
 
     for (int i = 0; i < num; ++i) {
         DataItem *child = parentItem->child(position + i);
-        child->setData(CompanyDataModel::EmployeeSurname, "[Enter surname]");
-        child->setData(CompanyDataModel::EmployeeName, "[Enter name]");
-        child->setData(CompanyDataModel::EmployeeMiddleName, "[Enter middlename]");
-        child->setData(CompanyDataModel::EmployeePosition, "[Enter position]");
-        child->setData(CompanyDataModel::EmployeeSalary, "[Enter salary]");
+        child->setData(CompanyDataModel::EmployeeSurname,
+                       QCoreApplication::translate("Undo/redo",
+                                                   "[Enter surname]"));
+        child->setData(CompanyDataModel::EmployeeName,
+                       QCoreApplication::translate("Undo/redo",
+                                                   "[Enter name]"));
+        child->setData(CompanyDataModel::EmployeeMiddleName,
+                       QCoreApplication::translate("Undo/redo",
+                                                   "[Enter middlename]"));
+        child->setData(CompanyDataModel::EmployeePosition,
+                       QCoreApplication::translate("Undo/redo",
+                                                   "[Enter position]"));
+        child->setData(CompanyDataModel::EmployeeSalary,
+                       QCoreApplication::translate("Undo/redo",
+                                                   "[Enter salary]"));
     }
 
     dataModel->updateDepartmentData(parentItem);
 }
 
-/*************************************************************************************************/
+/*****************************************************************************/
 
-DeleteDepartmentCommand::DeleteDepartmentCommand(int pos, int n, CompanyDataModel *model)
+DeleteDepartmentCommand::DeleteDepartmentCommand(int pos,
+                                                 int n,
+                                                 CompanyDataModel *model)
     : QUndoCommand(), position(pos), num(n), dataModel(model)
 {
     // Save data being removed
@@ -177,21 +216,28 @@ DeleteDepartmentCommand::DeleteDepartmentCommand(int pos, int n, CompanyDataMode
     }
 
     if (n == 1)
-        setText("Delete Department item");
+        setText(QCoreApplication::translate("Undo/redo",
+                                            "Delete Department item"));
     else
-        setText("Delete Department items");
+        setText(QCoreApplication::translate("Undo/redo",
+                                            "Delete Department items"));
 }
 
 void DeleteDepartmentCommand::undo()
 {
-    // restore department rows
+    // Restore department rows
     std::vector<DataItem*> newDepartments;
     for(int i = 0; i < num; ++i) {
+
+        // create default department
         DataItem *departmentItem = dataModel->createEmptyDepartmentItem();
         Q_ASSERT(i < static_cast<int>(departmentData.size()));
+        // fill with saved data
         dataModel->fillDepartmentItem(departmentItem, departmentData[i]);
         newDepartments.push_back(departmentItem);
     }
+
+    // Insert department rows into data model
     dataModel->beginInsertRows(QModelIndex(), position, position + num - 1);
     dataModel->departmentItems.insert(
                 dataModel->departmentItems.begin() + position,
@@ -202,10 +248,13 @@ void DeleteDepartmentCommand::undo()
 
 void DeleteDepartmentCommand::redo()
 {
-    // remove all employees inside departments being removed
+    // Remove all employees inside departments being removed
     for(int i = 0; i < num; ++i) {
+
         DataItem *departmentItem = dataModel->departmentItems.at(position + i);
-        const QModelIndex departmentIndex = dataModel->index(position + i, 0, QModelIndex());
+        const QModelIndex departmentIndex =
+                dataModel->index(position + i, 0, QModelIndex());
+
         int numEmployees = departmentItem->childCount();
         if (numEmployees) {
             dataModel->beginRemoveRows(departmentIndex, 0, numEmployees - 1);
@@ -214,7 +263,7 @@ void DeleteDepartmentCommand::redo()
         }
     }
 
-    // remove department
+    // Remove department(s)
     dataModel->beginRemoveRows(QModelIndex(), position, position + num - 1);
     for(int i = 0; i < num; ++i) {
         delete dataModel->departmentItems.at(position + i);
@@ -225,37 +274,48 @@ void DeleteDepartmentCommand::redo()
     dataModel->endRemoveRows();
 }
 
-/*************************************************************************************************/
+/*****************************************************************************/
 
-DeleteEmployeeCommand::DeleteEmployeeCommand(int dRow, int pos, int n, CompanyDataModel *model)
-    : QUndoCommand(), departmentRow(dRow), position(pos), num(n), dataModel(model)
+DeleteEmployeeCommand::DeleteEmployeeCommand(int dRow, int pos, int n,
+                                             CompanyDataModel *model)
+    : QUndoCommand(), departmentRow(dRow), position(pos), num(n),
+      dataModel(model)
 {
     Q_ASSERT(departmentRow >= 0);
-    Q_ASSERT(departmentRow < static_cast<int>(dataModel->departmentItems.size()));
+    Q_ASSERT(departmentRow <
+             static_cast<int>(dataModel->departmentItems.size()));
+
     DataItem *parentItem = dataModel->departmentItems.at(departmentRow);
     // Save data being removed
     for(int i = 0; i < num; ++i) {
-        employeeData.push_back(dataModel->createEmployee(parentItem->child(pos + i)));
+        employeeData.push_back(
+                    dataModel->createEmployee(parentItem->child(pos + i)));
     }
 
     if (n == 1)
-        setText("Delete Employee item");
+        setText(QCoreApplication::translate("Undo/redo",
+                                            "Delete Employee item"));
     else
-        setText("Delete Employee items");
+        setText(QCoreApplication::translate("Undo/redo",
+                                            "Delete Employee items"));
 }
 
 void DeleteEmployeeCommand::undo()
 {
     Q_ASSERT(departmentRow >= 0);
-    Q_ASSERT(departmentRow < static_cast<int>(dataModel->departmentItems.size()));
+    Q_ASSERT(departmentRow <
+             static_cast<int>(dataModel->departmentItems.size()));
+
     DataItem *parentItem = dataModel->departmentItems.at(departmentRow);
 
     QModelIndex parentIndex = dataModel->index(
                 dataModel->getRowNumber(parentItem),
                 0,
                 QModelIndex());
+
     Q_ASSERT(parentIndex.isValid());
 
+    // Restor employee data
     dataModel->beginInsertRows(parentIndex, position, position + num - 1);
     parentItem->insertChildren(position, num, CompanyDataModel::ColumnCount);
     dataModel->endInsertRows();
@@ -273,7 +333,8 @@ void DeleteEmployeeCommand::undo()
 void DeleteEmployeeCommand::redo()
 {
     Q_ASSERT(departmentRow >= 0);
-    Q_ASSERT(departmentRow < static_cast<int>(dataModel->departmentItems.size()));
+    Q_ASSERT(departmentRow <
+             static_cast<int>(dataModel->departmentItems.size()));
     DataItem *parentItem = dataModel->departmentItems.at(departmentRow);
 
     QModelIndex parentIndex = dataModel->index(
