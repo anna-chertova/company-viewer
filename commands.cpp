@@ -1,6 +1,6 @@
 ﻿/*
  * (c) Anna Chertova 2020
- * Command objects stored in undo/redo stack
+ * Command objects stored in undo/redo stack (implementation)
  */
 
 #include <QCoreApplication>

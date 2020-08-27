@@ -1,6 +1,6 @@
 /*
  * (c) Anna Chertova 2020
- * Hierarchical model implementation for company data
+ * Hierarchical model implementation for company data (implementation)
  */
 
 #include "companydatamodel.h"

@@ -1,6 +1,6 @@
 /*
  * (c) Anna Chertova 2020
- * GUI logic
+ * GUI logic (implementation)
  */
 
 #include <QContextMenuEvent>
@@ -137,7 +137,8 @@ void MainWindow::updateActions()
         }
         else {
             statusBar()->showMessage(
-                        tr("Position: (%1,%2) in top level").arg(row).arg(column));
+                        tr("Position: (%1,%2) in top level").arg(row).arg(
+                            column));
             actionRemoveDepartment->setEnabled(true);
             actionRemoveEmployee->setEnabled(false);
         }

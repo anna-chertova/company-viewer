@@ -1,6 +1,6 @@
 /*
  * (c) Anna Chertova 2020
- * This entity is responsible for saving company data to an xml file
+ * This class is responsible for saving company data to an xml file (implementation)
  */
 
 #include "companydatasaver.h"
