@@ -34,6 +34,8 @@ int main(int argc, char *argv[])
 
     QObject::connect(&w, &MainWindow::clearCompanyData,
                      &companyDataModel, &CompanyDataModel::clear);
+    QObject::connect(&w, &MainWindow::saveCompanyData,
+                     &companyDataModel, &CompanyDataModel::onDataSaved);
 
     w.show();
     return a.exec();

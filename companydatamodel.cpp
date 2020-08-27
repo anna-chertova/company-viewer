@@ -250,6 +250,12 @@ void CompanyDataModel::clear()
 {
     // clear company data
     removeRows(0, departmentItems.size());
+    undoStack->clear();
+}
+
+void CompanyDataModel::onDataSaved()
+{
+    undoStack->setClean();
 }
 
 DataItem *CompanyDataModel::createEmptyDepartmentItem()

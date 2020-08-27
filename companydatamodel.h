@@ -69,6 +69,8 @@ public slots:
     // to get ready to load new data from another file
     void clear();
 
+    void onDataSaved();
+
 private:
 
     // creates empty department item and fills it with default data
