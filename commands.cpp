@@ -6,8 +6,8 @@
 #include "commands.h"
 
 ChangeDataCommand::ChangeDataCommand(int dRow, int eRow, int col,
-                                     const QVariant &newVal,
                                      const QVariant &oldVal,
+                                     const QVariant &newVal,
                                      CompanyDataModel *model)
     : QUndoCommand(), departmentRow(dRow), employeeRow(eRow),
       column(col), newValue(newVal), oldValue(oldVal), dataModel(model)

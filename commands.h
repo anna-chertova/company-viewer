@@ -14,8 +14,8 @@
 class ChangeDataCommand: public QUndoCommand
 {
 public:
-    ChangeDataCommand(int dRow, int eRow, int col, const QVariant &newVal,
-                      const QVariant &oldVal, CompanyDataModel *model);
+    ChangeDataCommand(int dRow, int eRow, int col, const QVariant &olldVal,
+                      const QVariant &newVal, CompanyDataModel *model);
 
     void undo() override;
     void redo() override;
