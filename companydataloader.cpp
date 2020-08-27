@@ -1,6 +1,6 @@
 /*
  * (c) Anna Chertova 2020
- * This class manages loading data from an xml file
+ * This class manages loading data from an xml file (implementation)
  */
 
 #include "companydataloader.h"

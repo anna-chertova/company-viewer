@@ -6,14 +6,22 @@
 #ifndef COMPANYDATAMODEL_H
 #define COMPANYDATAMODEL_H
 
+#include <QAbstractItemModel>
+#include <QUndoStack>
+
 #include "department.h"
 #include "dataitem.h"
-#include <QAbstractItemModel>
 
 class CompanyDataModel : public QAbstractItemModel
 {
 
     Q_OBJECT
+
+    friend class ChangeDataCommand;
+    friend class AddDepartmentCommand;
+    friend class AddEmployeeCommand;
+    friend class DeleteDepartmentCommand;
+    friend class DeleteEmployeeCommand;
 
 public:
 
@@ -53,20 +61,38 @@ public:
     int getNumDepartments() const;
     Department getDepartment(int n) const;
 
+    // Undo stack accessor (for GUI)
+    QUndoStack *getUndoStack() const;
+
 public slots:
 
     // clear data e.g. when the file is closed
     // to get ready to load new data from another file
     void clear();
 
+    // to be able to change state when data is saved
+    void onDataSaved();
+
 private:
 
     // creates empty department item and fills it with default data
-    DataItem *createEmptyDepartment();
+    DataItem *createEmptyDepartmentItem();
+    // fills specified department item with data from department object
+    void fillDepartmentItem(DataItem *departmentItem, Department department);
+    // creates department object from specified item (filled with data)
+    Department createDepartment(DataItem *departmentItem) const;    
+
+    // fills specified employee item with data from employee object
+    void fillEmployeeItem(DataItem* employeeItem, Employee employee);
+    //creates employee object from specified item (filled with data)
+    Employee createEmployee(DataItem *employeeItem) const;    
 
     // re-calculates department data (employee number & average salary)
     // needed when employee is added/removed/changed
     void updateDepartmentData(DataItem *departmentItem);
+
+    // get department item row number
+    int getRowNumber(DataItem *departmentItem) const;
 
 private:
 
@@ -84,6 +110,8 @@ private:
     };
 
     std::vector<DataItem*> departmentItems;
+
+    QUndoStack *undoStack;
 
 };
 

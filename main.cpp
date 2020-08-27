@@ -13,8 +13,8 @@ int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 
-    MainWindow w;
     CompanyDataModel companyDataModel;
+    MainWindow w(&companyDataModel);
 
     // Load/save xml utilities
     CompanyDataLoader dataLoader(&companyDataModel);
@@ -34,8 +34,9 @@ int main(int argc, char *argv[])
 
     QObject::connect(&w, &MainWindow::clearCompanyData,
                      &companyDataModel, &CompanyDataModel::clear);
+    QObject::connect(&w, &MainWindow::saveCompanyData,
+                     &companyDataModel, &CompanyDataModel::onDataSaved);
 
-    w.setModel(&companyDataModel);
     w.show();
     return a.exec();
 }
