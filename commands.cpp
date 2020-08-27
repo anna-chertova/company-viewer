@@ -71,8 +71,9 @@ void AddDepartmentCommand::undo()
     // remove all employees inside departments being removed
     for(int i = 0; i < num; ++i) {
         DataItem *departmentItem = dataModel->departmentItems.at(position + i);
-        dataModel->beginRemoveRows(QModelIndex(), 0, num - 1);
-        departmentItem->removeChildren(0, num);
+        int numEmployees = departmentItem->childCount();
+        dataModel->beginRemoveRows(QModelIndex(), 0, numEmployees - 1);
+        departmentItem->removeChildren(0, numEmployees);
         dataModel->endRemoveRows();
     }
 
@@ -203,8 +204,9 @@ void DeleteDepartmentCommand::redo()
     for(int i = 0; i < num; ++i) {
         DataItem *departmentItem = dataModel->departmentItems.at(position + i);
         const QModelIndex departmentIndex = dataModel->index(position + i, 0, QModelIndex());
-        dataModel->beginRemoveRows(departmentIndex, 0, num - 1);
-        departmentItem->removeChildren(0, num);
+        int numEmployees = departmentItem->childCount();
+        dataModel->beginRemoveRows(departmentIndex, 0, numEmployees - 1);
+        departmentItem->removeChildren(0, numEmployees);
         dataModel->endRemoveRows();
     }
 
